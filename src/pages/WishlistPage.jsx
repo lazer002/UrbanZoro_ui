@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useWishlist } from "../state/WishlistContext.jsx";
 import { useAuth } from "../state/AuthContext.jsx";
-import api from "../utils/config.jsx";
+import api from "../utils/config.js";
 import { Link } from "react-router-dom";
 import { Heart, ShoppingBag, X, Heart as HeartOutline } from "lucide-react"; // or your icon set
 
@@ -24,7 +24,7 @@ function ProductCard({ product, onRemove, onToggle, isWishlisted }) {
           aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
           className="absolute top-3 right-3 p-2"
         >
-         {isWishlisted ?  <Heart className="h-5 w-5 text-red-500 fill-red-500" /> :  <HeartOutline className="h-5 w-5 text-black dark:text-white" />}
+         {isWishlisted ?  <Heart className="h-5 w-5 text-green-500 fill-green-500" /> :  <HeartOutline className="h-5 w-5 text-black dark:text-white" />}
         </button>
       </div>
 
