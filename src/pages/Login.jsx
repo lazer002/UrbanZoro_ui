@@ -38,6 +38,7 @@ export default function Login() {
 
   useEffect(() => {
     if (!window.google || !googleBtnRef.current) return;
+    console.log("Initializing Google Sign-In", import.meta.env.VITE_GOOGLE_CLIENT_ID);
     window.google.accounts.id.initialize({
       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
       callback: handleGoogleLogin,
