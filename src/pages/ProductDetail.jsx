@@ -202,7 +202,7 @@ const handleBuyNow = () => {
         </div>
 
         {/* Right: Info */}
-        <div className="md:w-1/2 flex flex-col gap-4 overflow-y-auto" style={{ maxHeight: "calc(100vh - 48px)" }}>
+        <div className="md:w-1/2 flex flex-col gap-4 overflow-y-auto" >
           <h1 className="text-[44px] font-bold text-gray-900">{product.title}</h1>
 
           <p className="text-[19px] text-gray-700 leading-relaxed">
@@ -285,7 +285,7 @@ const handleBuyNow = () => {
 
           <div className="mt-4 flex flex-col gap-3">
           {!isOutOfStock ? (
-          <div className="mt-4 flex flex-col gap-3">
+          < >
             {/* Row 1: Cart + Wishlist */}
             <div className="flex gap-3">
               <Button
@@ -318,7 +318,7 @@ const handleBuyNow = () => {
               <CreditCard className="w-5 h-5" />
               Buy Now
             </Button>
-          </div>
+          </>
   ) : (
    <>
  

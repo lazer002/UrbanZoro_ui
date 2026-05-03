@@ -36,11 +36,12 @@ const [discountValue, setDiscountValue] = useState(0);
 const [discountError, setDiscountError] = useState("");
 const [discountSuccess, setDiscountSuccess] = useState("");
 const [loadingDiscount, setLoadingDiscount] = useState(false);
-const [addressMode, setAddressMode] = useState("saved"); // saved | new
 const [selectedAddress, setSelectedAddress] = useState(null);
+
 const addresses = user?.addresses || [];
+const [addressMode, setAddressMode] = useState(addresses.length > 0 ? "saved" : "new"); 
 const defaultAddress =
-  addresses.find((a) => a.isDefault) || addresses[0];
+addresses.find((a) => a.isDefault) || addresses[0];
 
 
 
@@ -145,6 +146,7 @@ if (i.bundle) {
       shippingMethod,
       billingSame,
       contactEmail,
+      subscribeNews,
       source: "web",
       shippingAddress: {
         firstName,
@@ -261,10 +263,10 @@ const orderItems = items.map((i) => {
     variant: i.size || ""
   };
 });
-console.log("Order items for COD:", orderItems);
     const orderData = {
       items: orderItems,
       contactEmail,
+      subscribeNews,
       source: "web",
 
       shippingMethod,

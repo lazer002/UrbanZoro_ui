@@ -97,9 +97,10 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
-      <div className="grid grid-cols-3 items-center px-6 py-5">
+
+      <div className="relative flex items-center px-6 py-5">
         {/* Left: Mobile Menu + Nav */}
-        <div className="flex items-center gap-4 justify-start w-max">
+        <div className="flex items-center gap-4">
           {/* Mobile Hamburger */}
           <button
             className="xl:hidden"
@@ -244,21 +245,23 @@ ${menOpen ? "opacity-100 visible translate-y-0 pointer-events-auto" : "opacity-0
         </div>
 
         {/* Logo */}
-        <div className="flex justify-center">
-          <Link to="/" className="font-bold text-2xl">
-            MONKIESS
-          </Link>
-        </div>
+     <div className="absolute left-1/2 -translate-x-1/2 
+                max-[400px]:static max-[400px]:translate-x-0 
+                max-[400px]:ml-8">
+  <Link to="/" className="font-bold text-xl sm:text-2xl whitespace-nowrap">
+    MONKIESS
+  </Link>
+</div>
 
         {/* Right Icons */}
-        <div className="flex items-center gap-6 justify-end">
-          {user ? (
+        <div className="flex items-center gap-6 ml-auto">
+          {/* {user ? (
             <Link to="/admin">
               <div className="text-gray-600 hover:text-black text-sm">admin</div>
             </Link>
           ) : (
             ""
-          )}
+          )} */}
           <button onClick={() => setSearchOpen(true)}>
             <Search className="w-6 h-6" />
           </button>
@@ -344,137 +347,132 @@ ${menOpen ? "opacity-100 visible translate-y-0 pointer-events-auto" : "opacity-0
       </div>
 
       {/* Mobile Sidebar */}
-  <div
-  className={`fixed inset-0 z-40 xl:hidden transition-all duration-300 ${
-    mobileOpen ? "visible" : "invisible"
-  }`}
->
-  {/* Backdrop */}
-  <div
-    onClick={() => setMobileOpen(false)}
-    className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
-      mobileOpen ? "opacity-100" : "opacity-0"
-    }`}
-  />
+      <div className={`fixed inset-0 z-40 xl:hidden transition-all duration-300 ${mobileOpen ? "visible" : "invisible"}`}>
+        {/* Backdrop */}
+        <div
+          onClick={() => setMobileOpen(false)}
+          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${mobileOpen ? "opacity-100" : "opacity-0"
+            }`}
+        />
 
-  {/* Drawer */}
-  <div
-    className={`absolute left-0 top-0 h-full w-72 max-w-xs bg-white shadow-2xl flex flex-col
+        {/* Drawer */}
+        <div
+          className={`absolute left-0 top-0 h-full w-72 max-w-xs bg-white shadow-2xl flex flex-col
     transform transition-transform duration-300 ease-in-out
     ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
-  >
-            {/* Header row */}
-            <div className="flex items-center justify-between mb-6 px-4 pt-5 pb-3 border-b border-gray-200">
-              <Link
-                to="/"
-                className="text-lg font-semibold tracking-[0.25em] uppercase"
-                onClick={() => setMobileOpen(false)}
-              >
-                DRIPDESI
-              </Link>
-              <button
-                onClick={() => setMobileOpen(false)}
-                className="p-1.5 rounded-full border border-gray-200 hover:bg-gray-100 active:scale-95 transition"
-              >
-                <span className="block text-sm font-semibold">×</span>
-              </button>
-            </div>
+        >
+          {/* Header row */}
+          <div className="flex items-center justify-between mb-6 px-4 pt-5 pb-3 border-b border-gray-200">
+            <Link
+              to="/"
+              className="text-lg font-semibold tracking-[0.25em] uppercase"
+              onClick={() => setMobileOpen(false)}
+            >
+              DRIPDESI
+            </Link>
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="p-1.5 rounded-full border border-gray-200 hover:bg-gray-100 active:scale-95 transition"
+            >
+              <span className="block text-sm font-semibold">×</span>
+            </button>
+          </div>
 
-            {/* Scrollable content */}
-            <div className="flex-1 overflow-y-auto px-4 pb-6">
-              {/* Main nav */}
-              <nav>
-                <ul className="space-y-2">
-                  {navItems.map((item) => (
-                    <li key={item.title}>
-                      <Link
-                        to={item.url || "#"}
-                        onClick={() => setMobileOpen(false)}
-                        className="block px-2 py-2.5 rounded-lg text-sm font-semibold tracking-wide uppercase
-                             hover:bg-black hover:text-white transition-colors"
-                      >
-                        {item.title}
-                      </Link>
-                    </li>
-                  ))}
-
-                  <li className="pt-2">
+          {/* Scrollable content */}
+          <div className="flex-1 overflow-y-auto px-4 pb-6">
+            {/* Main nav */}
+            <nav>
+              <ul className="space-y-2">
+                {navItems.map((item) => (
+                  <li key={item.title}>
                     <Link
-                      to="/wishlist"
+                      to={item.url || "#"}
                       onClick={() => setMobileOpen(false)}
-                      className="flex items-center justify-between px-2 py-2.5 rounded-lg text-sm font-semibold tracking-wide uppercase hover:bg-black hover:text-white transition-colors"
+                      className="block px-2 py-2.5 rounded-lg text-sm font-semibold tracking-wide uppercase
+                             hover:bg-black hover:text-white transition-colors"
                     >
-                      Wishlist
-
-                      {wishlist.length > 0 && (
-                        <span className="bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                          {wishlist.length}
-                        </span>
-                      )}
+                      {item.title}
                     </Link>
                   </li>
-                </ul>
-              </nav>
+                ))}
 
-              {/* Divider */}
-              <div className="my-5 h-px bg-gray-200" />
+                <li className="pt-2">
+                  <Link
+                    to="/wishlist"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center justify-between px-2 py-2.5 rounded-lg text-sm font-semibold tracking-wide uppercase hover:bg-black hover:text-white transition-colors"
+                  >
+                    Wishlist
 
-              {/* Account section (optional, assumes `user` & `logout` exist in Header) */}
-              <div className="space-y-2">
-                {user ? (
-                  <>
-                    <p className="px-2 text-xs uppercase tracking-[0.2em] text-gray-400">
-                      Account
-                    </p>
-                    <Link
-                      to="/profile"
-                      onClick={() => setMobileOpen(false)}
-                      className="block px-2 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-100"
-                    >
-                      My Profile
-                    </Link>
-                    <Link
-                      to="/trackorder"
-                      onClick={() => setMobileOpen(false)}
-                      className="block px-2 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-100"
-                    >
-                      Track Order
-                    </Link>
-                    <button
-                      onClick={() => {
-                        logout();
-                        setMobileOpen(false);
-                      }}
-                      className="w-full text-left px-2 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50"
-                    >
-                      Logout
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <p className="px-2 text-xs uppercase tracking-[0.2em] text-gray-400">
-                      Account
-                    </p>
-                    <Link
-                      to="/login"
-                      onClick={() => setMobileOpen(false)}
-                      className="block px-2 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-100"
-                    >
-                      Log In
-                    </Link>
-                    <Link
-                      to="/register"
-                      onClick={() => setMobileOpen(false)}
-                      className="block px-2 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-100"
-                    >
-                      Sign Up
-                    </Link>
-                  </>
-                )}
-              </div>
+                    {wishlist.length > 0 && (
+                      <span className="bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {wishlist.length}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+
+            {/* Divider */}
+            <div className="my-5 h-px bg-gray-200" />
+
+            {/* Account section (optional, assumes `user` & `logout` exist in Header) */}
+            <div className="space-y-2">
+              {user ? (
+                <>
+                  <p className="px-2 text-xs uppercase tracking-[0.2em] text-gray-400">
+                    Account
+                  </p>
+                  <Link
+                    to="/profile"
+                    onClick={() => setMobileOpen(false)}
+                    className="block px-2 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-100"
+                  >
+                    My Profile
+                  </Link>
+                  <Link
+                    to="/trackorder"
+                    onClick={() => setMobileOpen(false)}
+                    className="block px-2 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-100"
+                  >
+                    Track Order
+                  </Link>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setMobileOpen(false);
+                    }}
+                    className="w-full text-left px-2 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="px-2 text-xs uppercase tracking-[0.2em] text-gray-400">
+                    Account
+                  </p>
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileOpen(false)}
+                    className="block px-2 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-100"
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    to="/register"
+                    onClick={() => setMobileOpen(false)}
+                    className="block px-2 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-100"
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
+      </div>
 
 
 
