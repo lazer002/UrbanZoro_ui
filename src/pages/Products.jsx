@@ -251,7 +251,16 @@ const handleSelectSize = (sizeKey) => {
                 </div>
 
               <div className="p-4 flex flex-col gap-1">
+                    <div
+                    className={`text-red-600 text-lg font-bold h-6 ${Object.values(p.inventory || {}).every(qty => qty === 0)
+                        ? "visible"
+                        : "invisible"
+                      }`}
+                  >
+                    Out of Stock
+                  </div>
   <div className="flex items-center justify-between">
+    
     <h3 className="text-sm font-bold text-black uppercase truncate">{p.title}</h3>
     <button
       onClick={(e) => {
@@ -287,6 +296,7 @@ const handleSelectSize = (sizeKey) => {
       </>
     )}
   </div>
+              
 </div>
 
               </div>

@@ -23,6 +23,12 @@ export default function ProductDetail() {
   const [openZoom, setOpenZoom] = useState(false)
   const [wishlisted, setWishlisted] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [showRequest, setShowRequest] = useState(false);
+
+const [request, setRequest] = useState({
+  email: "",
+  size: "",
+});
 
   useEffect(() => {
     const getProduct = async () => {
@@ -134,6 +140,34 @@ const handleBuyNow = () => {
     // TODO: persist wishlist to server / local storage if desired
   }
 
+
+
+  const isOutOfStock = Object.values(product.inventory || {}).every(q => q === 0);
+
+  const handleRequestSubmit = async () => {
+  if (!request.email || !request.size) {
+    toast.error("Please fill all fields");
+    return;
+  }
+
+  try {
+    await api.post("/product-request", {
+      productId: product._id,
+      email: request.email,
+      size: request.size,
+    });
+
+    toast.success("We’ll notify you when available 🚀");
+
+    setShowRequest(false);
+    setRequest({ email: "", size: "" });
+
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to send request");
+  }
+};
+
   return (
     <>
       <div className="flex flex-col md:flex-row gap-12 min-h-screen p-6 relative">
@@ -196,6 +230,11 @@ const handleBuyNow = () => {
           </div>
 
           <span className="text-green-700 text-[19px]">Inclusive of all taxes</span>
+          {isOutOfStock && (
+            <div  className="px-3 text-lg font-semibold text-white bg-red-600 rounded-full w-max">
+              Out of Stock
+            </div>
+          )}
           <Separator className="my-4" />
 
           {/* Size Selection */}
@@ -243,6 +282,9 @@ const handleBuyNow = () => {
           )}
 
           {/* Action Buttons */}
+
+          <div className="mt-4 flex flex-col gap-3">
+          {!isOutOfStock ? (
           <div className="mt-4 flex flex-col gap-3">
             {/* Row 1: Cart + Wishlist */}
             <div className="flex gap-3">
@@ -277,7 +319,19 @@ const handleBuyNow = () => {
               Buy Now
             </Button>
           </div>
-
+  ) : (
+   <>
+ 
+      {/* OUT OF STOCK FLOW */}
+      <Button
+        className="w-full py-6 text-xl bg-black text-white"
+        onClick={() => setShowRequest(true)}
+      >
+        Request This Product
+      </Button>
+    </>
+  )}
+</div>
           <Separator className="my-4" />
 
           <div className=" flex flex-col gap-3">
@@ -435,6 +489,75 @@ const handleBuyNow = () => {
           )}
         </div>
       </section>
+      {showRequest && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    
+    {/* Modal box */}
+    <div className="bg-white w-full max-w-md p-6 rounded-lg relative">
+
+      {/* Close button */}
+      <button
+        className="absolute top-3 right-3 text-xl"
+        onClick={() => setShowRequest(false)}
+      >
+        ✕
+      </button>
+
+      <h2 className="text-xl font-bold mb-4">
+        Get Notified
+      </h2>
+
+      {/* Email */}
+      <div className=" border-b py-3">
+      <input
+        type="email"
+        placeholder="Enter your email"
+        value={request.email}
+        onChange={(e) =>
+          setRequest({ ...request, email: e.target.value })
+        }
+        className="w-full border"
+      />
+</div>
+      {/* Size */}
+<div className="border-b py-4">
+  <p className="text-sm font-semibold mb-3 tracking-wide uppercase">
+    Select Size
+  </p>
+
+  <div className="flex flex-wrap gap-2">
+    {Object.keys(product.inventory || {}).map((size) => {
+      const isSelected = request.size === size;
+
+      return (
+        <button
+          key={size}
+          type="button"
+          onClick={() => setRequest({ ...request, size })}
+          className={`px-4 py-2 border text-sm font-medium transition-all duration-200
+            ${
+              isSelected
+                ? "bg-black text-white border-black"
+                : "bg-white text-black border-gray-300 hover:border-black"
+            }
+          `}
+        >
+          {size}
+        </button>
+      );
+    })}
+  </div>
+</div>
+      {/* Submit */}
+      <button
+        onClick={handleRequestSubmit}
+        className="w-full bg-black text-white py-3 font-bold"
+      >
+        Notify Me
+      </button>
+    </div>
+  </div>
+)}
     </>
   )
 }

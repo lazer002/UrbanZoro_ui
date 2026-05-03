@@ -35,6 +35,51 @@ export default function Home() {
   const debouncedQ = useDebounce(q, 350);
   const productAbortRef = useRef(null);
   const bundleAbortRef = useRef(null);
+  const [loading, setLoading] = useState(false);
+const [form, setForm] = useState({
+  name: "",
+  email: "",
+  phone: "",
+  message: "",
+});
+
+
+
+
+
+const handleChange = (e) => {
+  setForm({ ...form, [e.target.name]: e.target.value });
+};
+
+const handleSubmit = async (e) => {
+
+  if (!form.name || !form.email || !form.message) {
+    toast.error("Please fill all required fields");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    await api.post("/contact", form);
+
+    toast.success("Message sent 🚀");
+
+    setForm({
+      name: "",
+      email: "",
+      phone: "",
+      message: "",
+    });
+
+  } catch (err) {
+    toast.error("Failed to send message");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 const navigate = useNavigate();
   const openModal = (product) => {
     setSelectedProduct(product);
@@ -436,7 +481,7 @@ useEffect(() => {
 
             <div className="flex items-center gap-3">
               <Link
-                to="/collections/bestseller"
+                to="/products"
                 className="hidden md:inline-flex items-center gap-2 text-sm font-semibold uppercase text-black hover:text-gray-700 transition"
               >
                 DISCOVER MORE
@@ -727,17 +772,17 @@ useEffect(() => {
           </div>
 
           {/* Form */}
-          <form
-            method="post"
-            action="/contact#ContactForm"
+          <div
+    
             className="grid grid-cols-1 md:grid-cols-2 gap-6"
           >
             {/* Name */}
             <div className="relative">
               <input
                 type="text"
-                name="contact[Name]"
-                id="ContactForm-name"
+                name="name"
+                onChange={handleChange}
+                value={form.name}
                 placeholder=" "
                 className="peer w-full px-4 pt-5 pb-2 bg-transparent border border-black focus:border-black focus:outline-none uppercase"
                 required
@@ -758,8 +803,9 @@ useEffect(() => {
             <div className="relative">
               <input
                 type="email"
-                name="contact[email]"
-                id="ContactForm-email"
+                name="email"
+                onChange={handleChange}
+                value={form.email}
                 placeholder=" "
                 className="peer w-full px-4 pt-5 pb-2 bg-transparent border border-black focus:border-black focus:outline-none uppercase"
                 required
@@ -780,10 +826,11 @@ useEffect(() => {
             <div className="relative md:col-span-2">
               <input
                 type="tel"
-                name="contact[Phone number]"
-                id="ContactForm-phone"
+                name="phone"
                 pattern="[0-9\-]*"
+                onChange={handleChange}
                 placeholder=" "
+                value={form.phone}
                 required
                 className="peer w-full px-4 pt-5 pb-2 bg-transparent border border-black focus:border-black focus:outline-none uppercase"
               />
@@ -802,12 +849,13 @@ useEffect(() => {
             {/* Comment */}
             <div className="relative md:col-span-2">
               <textarea
-                name="contact[Comment]"
-                id="ContactForm-body"
+                name="message"
                 rows={5}
                 placeholder=" "
                 required
                 className="peer w-full px-4 pt-5 pb-2 bg-transparent border border-black focus:border-black focus:outline-none resize-none uppercase"
+                onChange={handleChange}
+                value={form.message}
               />
               <label
                 htmlFor="ContactForm-body"
@@ -825,12 +873,13 @@ useEffect(() => {
             <div className="md:col-span-2 text-center mt-4">
               <button
                 type="submit"
+                onClick={handleSubmit}
                 className="px-12 py-3 bg-black text-white font-bold uppercase tracking-wide transition-colors duration-300 ease-in-out hover:bg-gray-900"
               >
                 Send
               </button>
             </div>
-          </form>
+          </div>
         </div>
       </section>
       {/* product size modal */}

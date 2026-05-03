@@ -1,14 +1,37 @@
 import { Facebook, Instagram, MessageCircle } from "lucide-react";
 import { useState } from "react";
+import api from "@/utils/config";
+import { toast } from "react-hot-toast";
 import { Link } from "react-router-dom";
 export default function Footer() {
     const [email, setEmail] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    function handleSubmit(e) {
-        e.preventDefault();
-        // handle submit (API call or state update)
-        console.log("subscribe:", email);
-    }
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!email || !email.includes("@")) {
+    toast.error("Enter a valid email");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    await api.post("/newsletter", { email });
+
+    toast.success("Subscribed successfully 🎉");
+
+    setEmail(""); // reset input
+
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to subscribe");
+  } finally {
+    setLoading(false);
+  }
+};
     return (
         <footer className="bg-black text-white text-[11px] tracking-wide">
             <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -17,7 +40,7 @@ export default function Footer() {
                     <div>
                         <img
                             src="/logo.png"
-                            alt="DripDesi"
+                            alt="Monkiess"
                             className="h-10 mb-4"
                         />
                         <p className="uppercase font-medium tracking-wider mb-3">
@@ -26,9 +49,8 @@ export default function Footer() {
 
 
 
-                        <form
-                            id="footer-newsletter"
-                            onSubmit={(e) => e.preventDefault()}
+                        <div
+                           
                             className="flex justify-start"
                         >
                             <div
@@ -37,13 +59,14 @@ export default function Footer() {
                             >
                                 {/* Input */}
                                 <input
-                                    id="footer-email"
+                                   
                                     type="email"
                                     placeholder="YOUR EMAIL ADDRESS"
                                     className="peer w-full h-full pl-4 pr-24 bg-transparent text-white text-[11px] placeholder-transparent 
                  focus:outline-none focus:ring-0"
                                     autoComplete="off"
                                     required
+                                    onChange={(e) => setEmail(e.target.value)}
                                     onBlur={(e) => e.target.value = ''}
                                 />
 
@@ -55,18 +78,20 @@ export default function Footer() {
                  peer-focus:top-2 peer-focus:text-white peer-focus:opacity-0
                  peer-valid:top-2 peer-valid:text-white peer-valid:opacity-0"
                                 >
-                                    YOUR EMAIL ADDRESS
+                                    Email
                                 </label>
 
                                 {/* Button inside input */}
                                 <button
                                     type="submit"
+                                    onClick={handleSubmit}
+                                    disabled={loading}
                                     className="absolute right-2 top-1/2 -translate-y-1/2 h-8 px-4 bg-white text-black text-[11px] font-medium rounded-md focus:outline-none focus:ring-0"
                                 >
                                     SIGN UP
                                 </button>
                             </div>
-                        </form>
+                        </div>
 
 
 
