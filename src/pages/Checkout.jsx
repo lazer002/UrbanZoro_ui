@@ -98,16 +98,49 @@ const applyDiscount = async () => {
   const shippingFee = 100;
 const finalTotal = Math.max(0, subtotal - discountValue + shippingFee);
 
+
+
+
+// razewrpay integration
+
+
+
+
+
+
 const handlePayment = async () => {
   try {
     if (loading) return;
     setLoading(true);
 
     const orderData = {
-      items: items.map((i) => ({
-        productId: i.product?._id,
-        quantity: i.quantity,
-      })),
+items: items.map((i) => {
+  // 🛍️ Product item
+  if (i.product) {
+    return {
+      productId: i.product._id,
+      quantity: i.quantity,
+      variant: i.size || ""
+    };
+  }
+
+  // 📦 Bundle item
+if (i.bundle) {
+  return {
+    bundleId: i.bundle._id,
+    quantity: i.quantity,
+    mainImage: i.mainImage || "default.jpg",
+
+    bundleProducts: (i.bundleProducts || []).map((bp) => ({
+      productId: bp.product._id,
+      quantity: bp.quantity || 1,
+      variant: bp.size || ""   // ✅ THIS IS IMPORTANT
+    }))
+  };
+}
+
+  return null;
+}).filter(Boolean),
       paymentMethod: "razorpay",
       shippingMethod,
       billingSame,
@@ -142,7 +175,7 @@ const handlePayment = async () => {
 
       handler: async (res) => {
         try {
-          const verifyRes = await api.post("/payment-success", {
+          const verifyRes = await api.post("/orders/payment-success", {
             orderId: data.orderId,
             razorpay_payment_id: res.razorpay_payment_id,
             razorpay_order_id: res.razorpay_order_id,
@@ -151,7 +184,7 @@ const handlePayment = async () => {
 
           if (verifyRes.data.success) {
             toast.success("Payment Successful!");
-            navigate("/order-success/" + data.orderId);
+            navigate("/thankyou/" + data.orderId);
           } else {
             toast.error("Verification failed");
           }
@@ -205,54 +238,38 @@ if (
   setLoading(false);
   return;
 }
+const orderItems = items.map((i) => {
+  if (i.bundle) {
+  return {
+    bundleId: i.bundle._id,
+    quantity: i.quantity,
+    mainImage: i.mainImage ,
 
-    // 2) Prepare items array (handle bundles if present)
-    const orderItems = items.map((i) => {
-      if (i.bundle) {
-        return {
-          bundleId: i.bundle._id,
-          title: i.bundle.title,
-          variant: "", // keep consistent
-          quantity: Number(i.quantity) || 1,
-          price: Number(i.bundle.price) || 0,
-          total: (Number(i.bundle.price) || 0) * (Number(i.quantity) || 1),
-          mainImage: i.mainImage || i.bundle.images?.[0] || "",
-          bundleProducts: (i.bundleProducts || []).map((bp) => ({
-            productId: bp.product._id,
-            title: bp.product.title,
-            variant: bp.size || "",
-            quantity: Number(bp.quantity) || 1,
-            price: Number(bp.product.price) || 0,
-            mainImage: bp.product.images?.[0] || "",
-          })),
-        };
-      } else {
-        return {
-          productId: i.product._id,
-          title: i.product.title,
-          variant: i.size || "",
-          quantity: Number(i.quantity) || 1,
-          price: Number(i.product.price) || 0,
-          total: (Number(i.product.price) || 0) * (Number(i.quantity) || 1),
-          mainImage: i.product.images?.[0] || "",
-        };
-      }
-    });
+    // 🔥 ADD THIS
+    bundleProducts: (i.bundleProducts || []).map((bp) => ({
+      productId: bp.product._id,
+      variant: bp.size || "",
+      quantity: bp.quantity || 1
+    }))
+  };
+}
 
-    const shippingFee = 100;
+  // 🛍️ Product
+  return {
+    productId: i.product._id,
+    quantity: Number(i.quantity) || 1,
+    variant: i.size || ""
+  };
+});
+console.log("Order items for COD:", orderItems);
     const orderData = {
       items: orderItems,
       contactEmail,
       source: "web",
-      subtotal,
-      shipping: shippingFee,         // your backend expects "shipping"
-      total: finalTotal,
+
       shippingMethod,
       paymentMethod: "cod",
-      discount: {
-  code: discountCode,
-  amount: discountValue
-},
+discountCode: discountCode,
       billingSame,
       shippingAddress: {
         firstName,
@@ -289,31 +306,8 @@ if (
     } catch (e) {
      toast.error("Failed to clear cart after order.");
     }
-      await new Promise((r) => setTimeout(r, 1200));
 
-navigate("/thankyou", {
-  state: {
-    order: {
-      items: orderItems,
-      shippingAddress: {
-        firstName,
-        lastName,
-        address,
-        apartment,
-        city,
-        state,
-        zip,
-        country,
-        phone,
-      },
-      subtotal,
-      shipping: shippingFee,
-      total: finalTotal,
-      orderNumber,
-      email: contactEmail,
-    },
-  },
-});
+    navigate("/thankyou/" + data.orderId);
 
   } catch (err) {
     console.error("COD Order Error:", err);

@@ -83,7 +83,7 @@ export default function App() {
             <Route path="/newarrivals" element={<NewArrivals />} />
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/return" element={<ReturnExchange />} />
-            <Route path="/thankyou" element={<ThankYouPage />} />
+            <Route path="/thankyou/:id" element={<ThankYouPage />} />
             <Route
               path="/return/:orderNumber"
               element={<ReturnStatusPage />}
