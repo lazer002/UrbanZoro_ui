@@ -5,8 +5,9 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { useCart } from "../state/CartContext.jsx";
 import { useAuth } from "../state/AuthContext.jsx";
 import api from "@/utils/config";
-import { useNavigate } from "react-router-dom";
 import { useWishlist } from "../state/WishlistContext.jsx";
+
+
 const navItems = [
   { title: "HOME", url: "/" },
   {
@@ -34,6 +35,7 @@ export default function Header() {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [menOpen, setMenOpen] = useState(false); // 👈 MEN dropdown state
+const location = useLocation();
 
   useEffect(() => {
     let timer;
@@ -324,6 +326,7 @@ ${menOpen ? "opacity-100 visible translate-y-0 pointer-events-auto" : "opacity-0
                   </Link>
                   <Link
                     to="/login"
+                     state={{ from: location.pathname }}
                     className="block px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-100 hover:text-black rounded-b-xl transition-colors"
                   >
                     Login
@@ -485,7 +488,9 @@ ${menOpen ? "opacity-100 visible translate-y-0 pointer-events-auto" : "opacity-0
             }`}
         >
           <div
-            className={`relative bg-white w-full max-w-7xl rounded-md p-6 transform transition-all duration-1000 h-[90vh] overflow-y-scroll ${searchOpen
+            className={`relative bg-white w-full max-w-7xl rounded-md p-6 
+  transform transition-all duration-1000 h-[90vh] 
+  flex flex-col overflow-hidden min-h-0 ${searchOpen
                 ? "scale-100 translate-y-0 opacity-100"
                 : "scale-95 -translate-y-6 opacity-0"
               }`}
@@ -534,56 +539,47 @@ ${menOpen ? "opacity-100 visible translate-y-0 pointer-events-auto" : "opacity-0
             </div>
 
             {/* Dynamic Search Results */}
-            {results.length > 0 && (
-              <div className="mt-6">
-                <h4 className="font-bold mb-4 text-lg">Search Results</h4>
-                <div className="max-h-[400px] sm:max-h-max overflow-y-auto pr-2">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 ">
-                    {results.map((p) => (
-                      <Link
-                        key={p._id}
-                        to={`/product/${p._id}`}
-                          onClick={() => setSearchOpen(false)} 
-                        className="group border border-gray-200 rounded-md overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300"
-                      >
-                        {/* Product Image */}
-                        <div className="w-full h-48 bg-gray-100 overflow-hidden">
-                          <img
-                            src={
-                              p.images && p.images[0]
-                                ? p.images[0]
-                                : "/placeholder.png"
-                            }
-                            alt={p.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
+         {results.length > 0 && (
+  <div className="mt-6 flex flex-col flex-1 min-h-0">
+    
+    <h4 className="font-bold mb-4 text-lg flex-shrink-0">
+      Search Results
+    </h4>
 
-                        {/* Product Info */}
-                        <div className="p-4">
-                          <h5 className="font-semibold text-gray-800 group-hover:text-black truncate">
-                            {p.title}
-                          </h5>
-                          <p className="text-gray-500 mt-1">
-                            ${p.price.toFixed(2)}
-                          </p>
-                          {p.isNewProduct && (
-                            <span className="inline-block mt-2 px-2 py-1 text-xs font-bold text-white bg-green-500 rounded">
-                              NEW
-                            </span>
-                          )}
-                          {p.onSale && (
-                            <span className="inline-block mt-2 px-2 py-1 text-xs font-bold text-white bg-red-500 rounded ml-2">
-                              SALE
-                            </span>
-                          )}
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+    <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-400 min-h-0" data-lenis-prevent>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {results.map((p) => (
+          <Link
+            key={p._id}
+            to={`/product/${p._id}`}
+            onClick={() => setSearchOpen(false)}
+            className="group border border-gray-200 rounded-md overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300"
+          >
+            {/* Product Image */}
+            <div className="w-full h-48 bg-gray-100 overflow-hidden">
+              <img
+                src={p.images?.[0] || "/placeholder.png"}
+                alt={p.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+
+            {/* Product Info */}
+            <div className="p-4">
+              <h5 className="font-semibold text-gray-800 truncate">
+                {p.title}
+              </h5>
+              <p className="text-gray-500 mt-1">
+                ₹ {p.price.toFixed(2)}
+              </p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+
+  </div>
+)}
           </div>
         </div>
       )}

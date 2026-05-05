@@ -362,7 +362,7 @@ useEffect(() => {
             asChild
             className="bg-white text-black px-10 py-4 text-sm md:text-base font-semibold tracking-wide rounded-full shadow-lg hover:scale-105 hover:shadow-xl transition-transform duration-300"
           >
-            <Link to="/collections/sale">GRAB THE DEAL</Link>
+            <Link to="/newarrivals">GRAB THE DEAL</Link>
           </Button>
         </div>
 
