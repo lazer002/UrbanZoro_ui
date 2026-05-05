@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../state/AuthContext.jsx";
 import toast from "react-hot-toast";
+import { loadGoogleScript } from "../utils/loader.js";
 
 export default function Login() {
   const { login, loginWithGoogle } = useAuth();
@@ -36,13 +37,22 @@ export default function Login() {
     }
   };
 
-  useEffect(() => {
-    if (!window.google || !googleBtnRef.current) return;
-    console.log("Initializing Google Sign-In", import.meta.env.VITE_GOOGLE_CLIENT_ID);
+useEffect(() => {
+  const initGoogle = async () => {
+    const loaded = await loadGoogleScript(); 
+
+    if (!loaded) {
+      console.error("Google script failed to load");
+      return;
+    }
+
+    if (!googleBtnRef.current) return;
+
     window.google.accounts.id.initialize({
       client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
       callback: handleGoogleLogin,
     });
+
     window.google.accounts.id.renderButton(googleBtnRef.current, {
       theme: "outline",
       size: "large",
@@ -55,7 +65,10 @@ export default function Login() {
       inner.style.background = "transparent";
       inner.style.width = "100%";
     }
-  }, []);
+  };
+
+  initGoogle();
+}, []);
 
   const handleOuterClick = () => {
     if (innerBtnRef.current) innerBtnRef.current.click();

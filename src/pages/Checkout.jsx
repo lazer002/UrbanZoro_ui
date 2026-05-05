@@ -11,6 +11,8 @@ import { useNavigate } from "react-router-dom";
 import {Loader2, User } from "lucide-react";
 import { getDeliveryDate } from "@/utils/public";
 import { useAuth } from "@/state/AuthContext.jsx";
+import { loadRazorpay } from "@/utils/loader.js";
+
 export default function CheckoutPage() {
     const { user } = useAuth();
   const navigate = useNavigate();
@@ -37,7 +39,7 @@ const [discountError, setDiscountError] = useState("");
 const [discountSuccess, setDiscountSuccess] = useState("");
 const [loadingDiscount, setLoadingDiscount] = useState(false);
 const [selectedAddress, setSelectedAddress] = useState(null);
-
+const [processingPayment, setProcessingPayment] = useState(false);
 const addresses = user?.addresses || [];
 const [addressMode, setAddressMode] = useState(addresses.length > 0 ? "saved" : "new"); 
 const defaultAddress =
@@ -161,6 +163,15 @@ if (i.bundle) {
       },
     };
 
+
+    const isLoaded = await loadRazorpay();
+
+    if (!isLoaded) {
+      toast.error("Payment failed to load. Check your connection.");
+      setLoading(false);
+      return;
+    }
+
     const response = await api.post("/orders/create", orderData);
     const data = response.data;
 
@@ -177,6 +188,8 @@ if (i.bundle) {
 
       handler: async (res) => {
         try {
+          setProcessingPayment(true);
+
           const verifyRes = await api.post("/orders/payment-success", {
             orderId: data.orderId,
             razorpay_payment_id: res.razorpay_payment_id,
@@ -186,6 +199,11 @@ if (i.bundle) {
 
           if (verifyRes.data.success) {
             toast.success("Payment Successful!");
+
+            if (typeof clearCart === "function") {
+              await clearCart();
+            }
+
             navigate("/thankyou/" + data.orderId);
           } else {
             toast.error("Verification failed");
@@ -559,7 +577,15 @@ discountCode: discountCode,
           )}
         </button>
       </div>
-
+{processingPayment && (
+  <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div className="flex flex-col items-center gap-4">
+      <Loader2 className="w-8 h-8 animate-spin" />
+      <p className="text-lg font-medium">Processing payment...</p>
     </div>
+  </div>
+)}
+    </div>
+    
   );
 }
