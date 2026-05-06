@@ -124,177 +124,240 @@ const location = useLocation();
         [transform:scaleX(1.15)]
         origin-left
         whitespace-nowrap
+        hover:text-gray-700 transition-colors
       "
     >
       MONKIESS
     </Link>
 
     {/* Desktop Nav */}
-    <nav className="hidden xl:flex items-center gap-2">
-      {navItems.map((item) => {
-        // ✅ MEN with hover dropdown
-        if (item.showCategories) {
-          return (
-            <div key={item.title} className="relative">
-              {/* MEN link */}
+<nav className="hidden xl:flex items-center gap-2">
+  {navItems.map((item) => {
+
+    // ✅ MEN WITH MEGA MENU
+    if (item.showCategories) {
+      return (
+        <div key={item.title} className="relative">
+
+          {/* MEN LINK */}
           <Link
-  to={item.url}
-  onMouseEnter={() => setMenOpen(true)}
-  className={`
-    ${baseClass}
-    rounded-full px-4 py-2 transition-all duration-200
+            to={item.url}
+            onMouseEnter={() => setMenOpen(true)}
+            className={`
+              ${baseClass}
+              group relative overflow-hidden
+              rounded-full px-4 py-2
+              transition-all duration-300
 
-    hover:bg-gray-100 hover:text-black
+              ${
+                location.pathname === item.url
+                  ? "bg-black text-white"
+                  : "text-black"
+              }
+            `}
+          >
+            {/* Background */}
+            <span
+              className={`
+                absolute inset-0 bg-black rounded-full
+                transition-transform duration-500 ease-[cubic-bezier(.76,0,.24,1)]
 
-    ${
-      location.pathname === item.url
-        ? "bg-gray-100 text-black"
-        : ""
-    }
-  `}
->
+                ${
+                  location.pathname === item.url
+                    ? "translate-y-0"
+                    : "translate-y-full group-hover:translate-y-0"
+                }
+              `}
+            />
+
+            {/* Text Wrapper */}
+            <span className="relative block overflow-hidden leading-none h-[16px]">
+
+              {/* Default Text */}
+              <span
+                className={`
+                  block transition-transform duration-500 ease-[cubic-bezier(.76,0,.24,1)]
+
+                  ${
+                    location.pathname === item.url
+                      ? "-translate-y-[16px]"
+                      : "translate-y-0 group-hover:-translate-y-[16px]"
+                  }
+                `}
+              >
                 {item.title}
-              </Link>
+              </span>
 
-              {/* Mega menu */}
-              <div
-                onMouseEnter={() => setMenOpen(true)}
-                onMouseLeave={() => setMenOpen(false)}
-                className={`fixed left-0 top-[79px] w-screen bg-gradient-to-b from-gray-50 to-gray-100 shadow-lg border-t border-gray-200 
+              {/* Hover Text */}
+              <span
+                className={`
+                  absolute left-0 top-0 text-white
+                  transition-transform duration-500 ease-[cubic-bezier(.76,0,.24,1)]
+
+                  ${
+                    location.pathname === item.url
+                      ? "translate-y-0"
+                      : "translate-y-[16px] group-hover:translate-y-0"
+                  }
+                `}
+              >
+                {item.title}
+              </span>
+            </span>
+          </Link>
+
+          {/* Mega menu */}
+          <div
+            onMouseEnter={() => setMenOpen(true)}
+            onMouseLeave={() => setMenOpen(false)}
+            className={`fixed left-0 top-[79px] w-screen bg-gradient-to-b from-gray-50 to-gray-100 shadow-lg border-t border-gray-200 
 transition-all duration-300 ease-in-out z-40
 ${
   menOpen
     ? "opacity-100 visible translate-y-0 pointer-events-auto"
     : "opacity-0 invisible translate-y-2 pointer-events-none"
 }`}
-              >
-                <div className="relative flex items-center justify-center py-12 px-8 gap-8">
-                  
-                  {/* LEFT PROMO BANNER */}
-                  <div
-                    className="hidden xl:flex flex-col justify-center items-center 
+          >
+            <div className="relative flex items-center justify-center py-12 px-8 gap-8">
+
+              {/* LEFT PROMO BANNER */}
+              <div
+                className="hidden xl:flex flex-col justify-center items-center 
 bg-gradient-to-br from-white to-gray-100 text-gray-900 
 rounded-2xl p-8 w-72 h-[350px] shadow-md hover:shadow-lg 
 hover:scale-[1.02] transition-all duration-300 border border-gray-200"
-                  >
-                    <h3 className="text-2xl font-bold mb-2 tracking-tight text-center">
-                      🎉 20% OFF IN-APP
-                    </h3>
+              >
+                <h3 className="text-2xl font-bold mb-2 tracking-tight text-center">
+                  🎉 20% OFF IN-APP
+                </h3>
 
-                    <p className="text-sm text-gray-600 text-center mb-4">
-                      Get 20% off your first purchase in our app — limited
-                      time only!
-                    </p>
+                <p className="text-sm text-gray-600 text-center mb-4">
+                  Get 20% off your first purchase in our app — limited
+                  time only!
+                </p>
 
+                <Link
+                  to="/app-offer"
+                  className="bg-black text-white font-semibold rounded-full px-5 py-2 text-sm hover:bg-gray-800 transition"
+                  onClick={() => setMenOpen(false)}
+                >
+                  Shop Now
+                </Link>
+              </div>
+
+              {/* CATEGORY SCROLLER */}
+              <div className="relative flex-1 overflow-x-auto scrollbar-thin">
+                <div className="flex gap-8 pr-12 justify-start">
+                  {categories.map((category) => (
                     <Link
-                      to="/app-offer"
-                      className="bg-black text-white font-semibold rounded-full px-5 py-2 text-sm hover:bg-gray-800 transition"
+                      key={category._id}
+                      to={`/products?category=${category.slug}`}
                       onClick={() => setMenOpen(false)}
+                      className="flex-shrink-0 w-64 relative group/card shadow rounded-xl overflow-hidden bg-white border border-gray-100 hover:shadow-lg transition-all duration-300"
                     >
-                      Shop Now
-                    </Link>
-                  </div>
+                      {/* Image */}
+                      <div className="w-full h-[240px] overflow-hidden">
+                        <img
+                          src={
+                            category.photo ||
+                            `https://via.placeholder.com/250x300?text=${encodeURIComponent(
+                              category.name
+                            )}`
+                          }
+                          alt={category.name}
+                          className="w-full h-full object-cover transform group-hover/card:scale-110 transition-transform duration-700 ease-in-out"
+                        />
+                      </div>
 
-                  {/* CATEGORY SCROLLER */}
-                  <div className="relative flex-1 overflow-x-auto scrollbar-thin">
-                    <div className="flex gap-8 pr-12 justify-start">
-                      {categories.map((category) => (
-                        <Link
-                          key={category._id}
-                          to={`/products?category=${category.slug}`}
-                          onClick={() => setMenOpen(false)}
-                          className="flex-shrink-0 w-64 relative group/card shadow rounded-xl overflow-hidden bg-white border border-gray-100 hover:shadow-lg transition-all duration-300"
-                        >
-                          {/* Image */}
-                          <div className="w-full h-[240px] overflow-hidden">
-                            <img
-                              src={
-                                category.photo ||
-                                `https://via.placeholder.com/250x300?text=${encodeURIComponent(
-                                  category.name
-                                )}`
-                              }
-                              alt={category.name}
-                              className="w-full h-full object-cover transform group-hover/card:scale-110 transition-transform duration-700 ease-in-out"
-                            />
-                          </div>
-
-                          {/* Category Label */}
-                          <p
-                            className="absolute bottom-3 left-1/2 -translate-x-1/2
+                      {/* Category Label */}
+                      <p
+                        className="absolute bottom-3 left-1/2 -translate-x-1/2
 bg-red-600 text-white hover:text-white/85 text-sm font-semibold
 uppercase tracking-wide px-8 py-[3px] rounded-full
 shadow-sm backdrop-blur-sm transition-all duration-300"
-                          >
-                            {category.name}
-                          </p>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
+                      >
+                        {category.name}
+                      </p>
+                    </Link>
+                  ))}
                 </div>
               </div>
             </div>
-          );
-        }
-
-        // OTHER NAV ITEMS
-        if (item.dropdown) {
-          return (
-            <div key={item.title} className="relative group">
-              <Link
-                to={item.url}
-                className={`${baseClass} ${hoverClass}`}
-              >
-                {item.title}
-              </Link>
-
-              {/* Dropdown */}
-              <div
-                className="fixed left-0 top-[75px] w-screen bg-white shadow-lg border-t border-gray-100 
-opacity-0 invisible translate-y-2 
-group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 
-transition-all duration-300 ease-in-out z-40"
-              >
-                <ul className="max-w-7xl mx-auto flex gap-8 p-6">
-                  {item.dropdown.map((d) => (
-                    <li key={d.title}>
-                      <Link
-                        to={d.url}
-                        className="text-gray-600 hover:text-black text-lg"
-                      >
-                        {d.title}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          );
-        }
-
-        return (
-       <Link
-  key={item.title}
-  to={item.url}
-  className={`
-    ${baseClass}
-    rounded-full px-4 py-2 transition-all duration-200
-
-    hover:bg-gray-100 hover:text-black
-
-    ${
-      location.pathname === item.url
-        ? "bg-gray-100 text-black"
-        : ""
+          </div>
+        </div>
+      );
     }
-  `}
->
-  {item.title}
-</Link>
-        );
-      })}
-    </nav>
+
+    // ✅ OTHER NAV ITEMS
+    return (
+      <Link
+        key={item.title}
+        to={item.url}
+        className={`
+          ${baseClass}
+          group relative overflow-hidden
+          rounded-full px-4 py-2
+          transition-all duration-300
+
+          ${
+            location.pathname === item.url
+              ? "bg-black text-white"
+              : "text-black"
+          }
+        `}
+      >
+        {/* Background */}
+        <span
+          className={`
+            absolute inset-0 bg-black rounded-full
+            transition-transform duration-500 ease-[cubic-bezier(.76,0,.24,1)]
+
+            ${
+              location.pathname === item.url
+                ? "translate-y-0"
+                : "translate-y-full group-hover:translate-y-0"
+            }
+          `}
+        />
+
+        {/* Text Wrapper */}
+        <span className="relative block overflow-hidden leading-none h-[16px]">
+
+          {/* Default Text */}
+          <span
+            className={`
+              block transition-transform duration-500 ease-[cubic-bezier(.76,0,.24,1)]
+
+              ${
+                location.pathname === item.url
+                  ? "-translate-y-[16px]"
+                  : "translate-y-0 group-hover:-translate-y-[16px]"
+              }
+            `}
+          >
+            {item.title}
+          </span>
+
+          {/* Hover Text */}
+          <span
+            className={`
+              absolute left-0 top-0 text-white
+              transition-transform duration-500 ease-[cubic-bezier(.76,0,.24,1)]
+
+              ${
+                location.pathname === item.url
+                  ? "translate-y-0"
+                  : "translate-y-[16px] group-hover:translate-y-0"
+              }
+            `}
+          >
+            {item.title}
+          </span>
+        </span>
+      </Link>
+    );
+  })}
+</nav>
   </div>
 
   {/* MOBILE LOGO */}
