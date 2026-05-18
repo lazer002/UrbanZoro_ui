@@ -1,5 +1,5 @@
 // src/pages/ProductDetail.jsx
-import { useState, useEffect } from "react"
+import { useState, useEffect,useRef  } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useCart } from "../state/CartContext.jsx"
 import { Button } from "@/components/ui/button"
@@ -23,12 +23,13 @@ export default function ProductDetail() {
   const [openZoom, setOpenZoom] = useState(false)
   const [wishlisted, setWishlisted] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [showRequest, setShowRequest] = useState(false);
+  const [showMagnifier, setShowMagnifier] =
+  useState(false)
 
-const [request, setRequest] = useState({
-  email: "",
-  size: "",
-});
+const [zoomPosition, setZoomPosition] =
+  useState({ x: 50, y: 50 })
+
+const magnifierTimeout = useRef(null)
 
   useEffect(() => {
     const getProduct = async () => {
@@ -140,69 +141,236 @@ const handleBuyNow = () => {
     // TODO: persist wishlist to server / local storage if desired
   }
 
-
-
-  const isOutOfStock = Object.values(product.inventory || {}).every(q => q === 0);
-
-  const handleRequestSubmit = async () => {
-  if (!request.email || !request.size) {
-    toast.error("Please fill all fields");
-    return;
-  }
-
-  try {
-    await api.post("/product-request", {
-      productId: product._id,
-      email: request.email,
-      size: request.size,
-    });
-
-    toast.success("We’ll notify you when available 🚀");
-
-    setShowRequest(false);
-    setRequest({ email: "", size: "" });
-
-  } catch (err) {
-    console.error(err);
-    toast.error("Failed to send request");
-  }
-};
-
   return (
     <>
-      <div className="flex flex-col md:flex-row gap-12 min-h-screen p-6 relative">
-        {/* Left: Images */}
-        <div className="md:w-1/2 flex flex-col gap-3">
-          <div className="sticky top-24">
-            <Card
-              className="relative overflow-hidden border-0 cursor-zoom-in"
-              onClick={() => imageCount && setOpenZoom(true)}
-              aria-label="Open image zoom"
-            >
-              <img
-                src={images[activeImage]}
-                alt={product.title ?? "Product image"}
-                className="w-full h-[80vh] object-cover rounded-md"
-              />
-            </Card>
+    <div
+  className="
+    flex flex-col
+    md:flex-row
 
-            {/* Thumbnail Previews */}
-            <div className="flex gap-2 overflow-x-auto pb-2 mt-3">
-              {images.map((img, idx) => (
-                <img
-                  key={idx}
-                  src={img}
-                  alt={`${product.title} ${idx}`}
-                  className={`w-20 h-20 object-cover rounded-md cursor-pointer flex-shrink-0 border transition ${activeImage === idx ? "border-brand-600" : "border-gray-200"}`}
-                  onClick={() => setActiveImage(idx)}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
+    gap-12
+
+    p-6
+
+    relative
+    items-start
+  "
+>
+        {/* Left: Images */}
+    {/* Left: Images */}
+<div
+  className="
+    md:w-1/2
+    flex gap-4
+
+    sticky
+    top-24
+
+    self-start
+
+    h-fit
+  "
+>
+
+  {/* THUMBNAILS */}
+  <div className="flex flex-col gap-3">
+    {images.map((img, idx) => (
+      <img
+        key={idx}
+        src={img}
+        alt={`${product.title} ${idx}`}
+
+        onClick={() => setActiveImage(idx)}
+
+        className={`
+          w-20 h-24
+
+          object-cover
+
+          rounded-md
+
+          cursor-pointer
+
+          border
+
+          transition-all duration-300
+
+          ${
+            activeImage === idx
+              ? "border-black opacity-100"
+              : "border-gray-200 opacity-60 hover:opacity-100"
+          }
+        `}
+      />
+    ))}
+  </div>
+
+  {/* MAIN IMAGE + MAGNIFIER */}
+  <div
+    className="
+      flex-1
+      flex gap-6
+    "
+
+    onMouseEnter={() => {
+
+      if (magnifierTimeout.current) {
+        clearTimeout(magnifierTimeout.current)
+      }
+
+      setShowMagnifier(true)
+    }}
+
+    onMouseLeave={() => {
+
+      magnifierTimeout.current =
+        setTimeout(() => {
+          setShowMagnifier(false)
+        }, 120)
+
+    }}
+  >
+
+    {/* MAIN IMAGE */}
+    <Card
+      className="
+        relative
+
+        overflow-hidden
+
+        border-0
+
+        flex-1
+
+        bg-[#f5f5f3]
+
+        cursor-crosshair
+      "
+
+      onMouseMove={(e) => {
+
+        const {
+          left,
+          top,
+          width,
+          height,
+        } =
+          e.currentTarget.getBoundingClientRect()
+
+        const x =
+          ((e.clientX - left) / width) * 100
+
+        const y =
+          ((e.clientY - top) / height) * 100
+
+        setZoomPosition({ x, y })
+      }}
+    >
+
+      <img
+        src={images[activeImage]}
+        alt={
+          product.title ??
+          "Product image"
+        }
+
+        className="
+          w-full
+          max-h-[82vh]
+
+          object-cover
+        "
+      />
+
+      {/* MAGNIFIER LENS */}
+      {showMagnifier && (
+        <div
+          className="
+            absolute
+
+            w-44 h-44
+            rounded-full
+
+            border border-white/80
+
+            bg-white/10
+            backdrop-blur-[2px]
+
+            pointer-events-none
+
+            shadow-[0_10px_40px_rgba(0,0,0,0.18)]
+          "
+
+          style={{
+            left: `calc(${zoomPosition.x}% - 88px)`,
+
+            top: `calc(${zoomPosition.y}% - 88px)`,
+          }}
+        />
+      )}
+
+    </Card>
+
+    {/* ZOOM PREVIEW */}
+    <div
+      className={`
+        hidden xl:block
+
+        fixed
+
+        right-1/4
+        top-32
+
+        w-[620px]
+        h-[620px]
+
+        overflow-hidden
+
+        bg-[#f5f5f3]
+
+        border border-gray-200
+
+        shadow-2xl
+
+        z-[44444]
+
+        transition-all duration-300
+
+        ${
+          showMagnifier
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-3 pointer-events-none"
+        }
+      `}
+    >
+
+      <div
+        className="
+          w-full h-full
+
+          bg-no-repeat
+        "
+
+        style={{
+          backgroundImage: `url(${images[activeImage]})`,
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "250%",
+
+        backgroundPosition: `
+  ${Math.min(Math.max(zoomPosition.x, 15), 85)}%
+  ${Math.min(Math.max(zoomPosition.y, 15), 85)}%
+`,
+        }}
+      />
+
+    </div>
+
+  </div>
+
+</div>
 
         {/* Right: Info */}
-        <div className="md:w-1/2 flex flex-col gap-4 overflow-y-auto" >
+        <div className="md:w-1/2 flex flex-col gap-4 " >
           <h1 className="text-[44px] font-bold text-gray-900">{product.title}</h1>
 
           <p className="text-[19px] text-gray-700 leading-relaxed">
@@ -230,11 +398,6 @@ const handleBuyNow = () => {
           </div>
 
           <span className="text-green-700 text-[19px]">Inclusive of all taxes</span>
-          {isOutOfStock && (
-            <div  className="px-3 text-lg font-semibold text-white bg-red-600 rounded-full w-max">
-              Out of Stock
-            </div>
-          )}
           <Separator className="my-4" />
 
           {/* Size Selection */}
@@ -242,7 +405,7 @@ const handleBuyNow = () => {
             <div className="flex flex-col gap-4">
               <label className="font-medium text-xl text-black">Select Size</label>
 
-              <div className="flex gap-3 px-2 flex-wrap">
+              <div className="flex gap-3 px-2 flex-wrap z-[2]" >
                 {["XS", "S", "M", "L", "XL", "XXL"].map((size) => {
                   const count = product.inventory[size] || 0
                   const isAvailable = count > 0
@@ -282,10 +445,7 @@ const handleBuyNow = () => {
           )}
 
           {/* Action Buttons */}
-
           <div className="mt-4 flex flex-col gap-3">
-          {!isOutOfStock ? (
-          < >
             {/* Row 1: Cart + Wishlist */}
             <div className="flex gap-3">
               <Button
@@ -318,20 +478,8 @@ const handleBuyNow = () => {
               <CreditCard className="w-5 h-5" />
               Buy Now
             </Button>
-          </>
-  ) : (
-   <>
- 
-      {/* OUT OF STOCK FLOW */}
-      <Button
-        className="w-full py-6 text-xl bg-black text-white"
-        onClick={() => setShowRequest(true)}
-      >
-        Request This Product
-      </Button>
-    </>
-  )}
-</div>
+          </div>
+
           <Separator className="my-4" />
 
           <div className=" flex flex-col gap-3">
@@ -489,75 +637,6 @@ const handleBuyNow = () => {
           )}
         </div>
       </section>
-      {showRequest && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-    
-    {/* Modal box */}
-    <div className="bg-white w-full max-w-md p-6 rounded-lg relative">
-
-      {/* Close button */}
-      <button
-        className="absolute top-3 right-3 text-xl"
-        onClick={() => setShowRequest(false)}
-      >
-        ✕
-      </button>
-
-      <h2 className="text-xl font-bold mb-4">
-        Get Notified
-      </h2>
-
-      {/* Email */}
-      <div className=" border-b py-3">
-      <input
-        type="email"
-        placeholder="Enter your email"
-        value={request.email}
-        onChange={(e) =>
-          setRequest({ ...request, email: e.target.value })
-        }
-        className="w-full border"
-      />
-</div>
-      {/* Size */}
-<div className="border-b py-4">
-  <p className="text-sm font-semibold mb-3 tracking-wide uppercase">
-    Select Size
-  </p>
-
-  <div className="flex flex-wrap gap-2">
-    {Object.keys(product.inventory || {}).map((size) => {
-      const isSelected = request.size === size;
-
-      return (
-        <button
-          key={size}
-          type="button"
-          onClick={() => setRequest({ ...request, size })}
-          className={`px-4 py-2 border text-sm font-medium transition-all duration-200
-            ${
-              isSelected
-                ? "bg-black text-white border-black"
-                : "bg-white text-black border-gray-300 hover:border-black"
-            }
-          `}
-        >
-          {size}
-        </button>
-      );
-    })}
-  </div>
-</div>
-      {/* Submit */}
-      <button
-        onClick={handleRequestSubmit}
-        className="w-full bg-black text-white py-3 font-bold"
-      >
-        Notify Me
-      </button>
-    </div>
-  </div>
-)}
     </>
   )
 }
