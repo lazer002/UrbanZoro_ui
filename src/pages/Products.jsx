@@ -215,7 +215,7 @@ const handleFilterChange = (type, value) => {
           className="flex items-center gap-2 px-4 py-2 bg-black text-white font-bold uppercase hover:bg-black transition"
         >
           <Filter className="w-5 h-5" />
-          Filter
+         <span className="max-[500]:hidden"> Filter</span>
         </button>
 
         <div className="w-48">
