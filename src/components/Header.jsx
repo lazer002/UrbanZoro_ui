@@ -252,7 +252,11 @@ useEffect(() => {
 >
   {navItems.map((item) => {
     const active =
-      location.pathname === item.url;
+  item.url === "/"
+    ? false
+    : location.pathname.startsWith(
+        item.url
+      );
 
     return (
       <div

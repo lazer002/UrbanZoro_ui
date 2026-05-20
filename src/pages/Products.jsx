@@ -235,7 +235,7 @@ const handleFilterChange = (type, value) => {
       </div>
 
       {/* Products Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-4 pb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 px-4 pb-10">
         {products.map((p) => {
           // console.log("[ProductCard] render", { _id: p._id, isWished: wishlist.includes(String(p._id)), wishlistSample: wishlist.slice(0, 6) });
             const id = String(p._id);
