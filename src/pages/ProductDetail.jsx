@@ -1,5 +1,5 @@
 // src/pages/ProductDetail.jsx
-import { useState, useEffect,useRef  } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useCart } from "../state/CartContext.jsx"
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog"
 import { ChevronLeft, ChevronRight, X, ShoppingCart, Heart, CreditCard, Gift } from "lucide-react"
-import api  from "@/utils/config"
+import api from "@/utils/config"
 import toast from "react-hot-toast"
 
 export default function ProductDetail() {
@@ -24,12 +24,14 @@ export default function ProductDetail() {
   const [wishlisted, setWishlisted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [showMagnifier, setShowMagnifier] =
-  useState(false)
+    useState(false)
 
-const [zoomPosition, setZoomPosition] =
-  useState({ x: 50, y: 50 })
+  const [zoomPosition, setZoomPosition] =
+    useState({ x: 50, y: 50 })
+  const [mousePosition, setMousePosition] =
+    useState({ x: 0, y: 0 })
 
-const magnifierTimeout = useRef(null)
+  const magnifierTimeout = useRef(null)
 
   useEffect(() => {
     const getProduct = async () => {
@@ -120,20 +122,20 @@ const magnifierTimeout = useRef(null)
 
 
   // inside the component
-const handleBuyNow = () => {
-  // Check size requirement first (same logic as handleAddToCart)
-  if (product.inventory && Object.keys(product.inventory).length > 0) {
-    const availableSizes = ["XS","S","M","L","XL","XXL"].filter(s => (product.inventory?.[s] || 0) > 0)
-    if (availableSizes.length && !selectedSize) {
-      toast.error("Please select a size before buying.")
-      return
+  const handleBuyNow = () => {
+    // Check size requirement first (same logic as handleAddToCart)
+    if (product.inventory && Object.keys(product.inventory).length > 0) {
+      const availableSizes = ["XS", "S", "M", "L", "XL", "XXL"].filter(s => (product.inventory?.[s] || 0) > 0)
+      if (availableSizes.length && !selectedSize) {
+        toast.error("Please select a size before buying.")
+        return
+      }
     }
-  }
 
-  // add to cart then navigate
-  add(product._id, selectedSize || null)
-  navigate("/checkout")
-}
+    // add to cart then navigate
+    add(product._id, selectedSize || null)
+    navigate("/checkout")
+  }
 
 
   const handleWishlist = () => {
@@ -143,8 +145,8 @@ const handleBuyNow = () => {
 
   return (
     <>
-    <div
-  className="
+      <div
+        className="
     flex flex-col
     md:flex-row
 
@@ -155,11 +157,10 @@ const handleBuyNow = () => {
     relative
     items-start
   "
->
+      >
         {/* Left: Images */}
-    {/* Left: Images */}
-<div
-  className="
+        <div
+          className="
     md:w-1/2
     flex gap-4
 
@@ -170,19 +171,19 @@ const handleBuyNow = () => {
 
     h-fit
   "
->
+        >
 
-  {/* THUMBNAILS */}
-  <div className="flex flex-col gap-3">
-    {images.map((img, idx) => (
-      <img
-        key={idx}
-        src={img}
-        alt={`${product.title} ${idx}`}
+          {/* THUMBNAILS */}
+          <div className="flex flex-col gap-3">
+            {images.map((img, idx) => (
+              <img
+                key={idx}
+                src={img}
+                alt={`${product.title} ${idx}`}
 
-        onClick={() => setActiveImage(idx)}
+                onClick={() => setActiveImage(idx)}
 
-        className={`
+                className={`
           w-20 h-24
 
           object-cover
@@ -195,45 +196,44 @@ const handleBuyNow = () => {
 
           transition-all duration-300
 
-          ${
-            activeImage === idx
-              ? "border-black opacity-100"
-              : "border-gray-200 opacity-60 hover:opacity-100"
-          }
+          ${activeImage === idx
+                    ? "border-black opacity-100"
+                    : "border-gray-200 opacity-60 hover:opacity-100"
+                  }
         `}
-      />
-    ))}
-  </div>
+              />
+            ))}
+          </div>
 
-  {/* MAIN IMAGE + MAGNIFIER */}
-  <div
-    className="
+          {/* MAIN IMAGE + MAGNIFIER */}
+          <div
+            className="
       flex-1
       flex gap-6
     "
 
-    onMouseEnter={() => {
+            onMouseEnter={() => {
 
-      if (magnifierTimeout.current) {
-        clearTimeout(magnifierTimeout.current)
-      }
+              if (magnifierTimeout.current) {
+                clearTimeout(magnifierTimeout.current)
+              }
 
-      setShowMagnifier(true)
-    }}
+              setShowMagnifier(true)
+            }}
 
-    onMouseLeave={() => {
+            onMouseLeave={() => {
 
-      magnifierTimeout.current =
-        setTimeout(() => {
-          setShowMagnifier(false)
-        }, 120)
+              magnifierTimeout.current =
+                setTimeout(() => {
+                  setShowMagnifier(false)
+                }, 120)
 
-    }}
-  >
+            }}
+          >
 
-    {/* MAIN IMAGE */}
-    <Card
-      className="
+            {/* MAIN IMAGE */}
+            <Card
+              className="
         relative
 
         overflow-hidden
@@ -247,77 +247,83 @@ const handleBuyNow = () => {
         cursor-crosshair
       "
 
-      onMouseMove={(e) => {
+              onMouseMove={(e) => {
 
-        const {
-          left,
-          top,
-          width,
-          height,
-        } =
-          e.currentTarget.getBoundingClientRect()
+                const {
+                  left,
+                  top,
+                  width,
+                  height,
+                } =
+                  e.currentTarget.getBoundingClientRect()
 
-        const x =
-          ((e.clientX - left) / width) * 100
+                const x =
+                  ((e.clientX - left) / width) * 100
 
-        const y =
-          ((e.clientY - top) / height) * 100
+                const y =
+                  ((e.clientY - top) / height) * 100
 
-        setZoomPosition({ x, y })
-      }}
-    >
+                setZoomPosition({ x, y })
 
-      <img
-        src={images[activeImage]}
-        alt={
-          product.title ??
-          "Product image"
-        }
+                setMousePosition({
+                  x: e.clientX,
+                  y: e.clientY,
+                })
+              }}
+            >
 
-        className="
+              <img
+                src={images[activeImage]}
+                alt={
+                  product.title ??
+                  "Product image"
+                }
+
+                className="
           w-full
           max-h-[82vh]
 
           object-cover
         "
-      />
+              />
 
-      {/* MAGNIFIER LENS */}
-      {showMagnifier && (
-        <div
-          className="
+              {/* MAGNIFIER LENS */}
+
+
+            </Card>
+            {showMagnifier && (
+              <div
+                className="
             absolute
-
+z-[999]
             w-44 h-44
             rounded-full
 
             border border-white/80
 
-            bg-white/10
-            backdrop-blur-[2px]
-
+        bg-white/30
+backdrop-blur-md
+ring-2 ring-white/60
             pointer-events-none
 
             shadow-[0_10px_40px_rgba(0,0,0,0.18)]
           "
 
-          style={{
-            left: `calc(${zoomPosition.x}% - 88px)`,
+                style={{
+                  left: `calc(${zoomPosition.x}% - 88px)`,
 
-            top: `calc(${zoomPosition.y}% - 88px)`,
-          }}
-        />
-      )}
+                  top: `calc(${zoomPosition.y}% - 88px)`,
+                }}
+              />
+            )}
 
-    </Card>
-
-    {/* ZOOM PREVIEW */}
-    <div
-      className={`
+            {/* ZOOM PREVIEW */}
+            <div
+              className={`
         hidden xl:block
 
         fixed
-
+isolate
         right-1/4
         top-32
 
@@ -336,38 +342,37 @@ const handleBuyNow = () => {
 
         transition-all duration-300
 
-        ${
-          showMagnifier
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-3 pointer-events-none"
-        }
+        ${showMagnifier
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-3 pointer-events-none"
+                }
       `}
-    >
+            >
 
-      <div
-        className="
+              <div
+                className="
           w-full h-full
 
           bg-no-repeat
         "
 
-        style={{
-          backgroundImage: `url(${images[activeImage]})`,
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "250%",
+                style={{
+                  backgroundImage: `url(${images[activeImage]})`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundSize: "250%",
 
-        backgroundPosition: `
+                  backgroundPosition: `
   ${Math.min(Math.max(zoomPosition.x, 15), 85)}%
   ${Math.min(Math.max(zoomPosition.y, 15), 85)}%
 `,
-        }}
-      />
+                }}
+              />
 
-    </div>
+            </div>
 
-  </div>
+          </div>
 
-</div>
+        </div>
 
         {/* Right: Info */}
         <div className="md:w-1/2 flex flex-col gap-4 " >
@@ -405,7 +410,7 @@ const handleBuyNow = () => {
             <div className="flex flex-col gap-4">
               <label className="font-medium text-xl text-black">Select Size</label>
 
-              <div className="flex gap-3 px-2 flex-wrap z-[2]" >
+              <div className="flex gap-3 px-2 flex-wrap" >
                 {["XS", "S", "M", "L", "XL", "XXL"].map((size) => {
                   const count = product.inventory[size] || 0
                   const isAvailable = count > 0
@@ -413,22 +418,76 @@ const handleBuyNow = () => {
                   return (
                     <button
                       key={size}
-                      onClick={() => isAvailable && setSelectedSize(size)}
-                      className={`w-14 h-14 flex items-center justify-center rounded-full border text-base font-semibold
-                        transition-all duration-300 ease-in-out transform
-                        ${
-                          selectedSize === size
-                            ? "bg-black text-white border-black scale-110 shadow-md shadow-gray-400"
-                            : "bg-white text-gray-700 border-gray-300 hover:border-black hover:scale-105"
+                      onClick={() =>
+                        isAvailable &&
+                        setSelectedSize(size)
+                      }
+
+                      className={`
+      w-14 h-14
+
+      flex items-center
+      justify-center
+
+      rounded-full
+
+      border
+
+      text-base
+      font-semibold
+
+      transition-all
+      duration-300
+      ease-out
+
+      ${selectedSize === size
+                          ? `
+            bg-black
+            text-white
+            border-black
+
+            shadow-lg
+          `
+                          : `
+            bg-white
+            text-gray-700
+            border-gray-300
+
+            hover:border-black
+            hover:-translate-y-[2px]
+            hover:shadow-md
+          `
                         }
-                        ${
-                          !isAvailable
-                            ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-50"
-                            : ""
-                        }`}
+
+      ${!isAvailable
+                          ? `
+            bg-gray-100
+            text-gray-400
+            border-gray-200
+
+            cursor-not-allowed
+            opacity-50
+
+            hover:translate-y-0
+            hover:shadow-none
+          `
+                          : ""
+                        }
+    `}
+
                       disabled={!isAvailable}
-                      aria-pressed={selectedSize === size}
-                      aria-label={`Size ${size} ${isAvailable ? "available" : "out of stock"}`}
+
+                      aria-pressed={
+                        selectedSize === size
+                      }
+
+                      aria-label={`
+      Size ${size}
+      ${isAvailable
+                          ? "available"
+                          : "out of stock"
+                        }
+    `}
                     >
                       {size}
                     </button>
@@ -486,9 +545,9 @@ const handleBuyNow = () => {
             <p className="text-2xl font-semibold text-black">Offers For You</p>
 
             {/* Offer 1 */}
-            <div className="border rounded-lg p-3 flex items-center gap-3 hover:bg-gray-50 transition animate-pulse">
+            <div className="border rounded-lg p-3 flex items-center gap-3 hover:bg-gray-50 transition  hover:-translate-y-[2px] hover:shadow-md">
               <div className="p-2 bg-brand-100 rounded-full">
-                <Gift className="w-6 h-6 text-brand-600 " />
+                <Gift className="w-6 h-6 text-brand-600" />
               </div>
               <div className="flex flex-col">
                 <p className="text-[16px] font-medium text-gray-800">
