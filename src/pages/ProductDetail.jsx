@@ -147,7 +147,7 @@ const [request, setRequest] = useState({
       // check if there is at least one available size
       const availableSizes = ["XS", "S", "M", "L", "XL", "XXL"].filter((s) => (product.inventory?.[s] || 0) > 0)
       if (availableSizes.length && !selectedSize) {
-        window.alert("Please select a size before adding to cart.")
+        toast.error("Please select a size before adding to cart.")
         return
       }
     }
