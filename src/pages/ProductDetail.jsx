@@ -30,7 +30,8 @@ const [request, setRequest] = useState({
   email: "",
   size: "",
 });
-
+const touchStartX = useRef(null);
+const touchEndX = useRef(null);
 
   const [zoomPosition, setZoomPosition] =
     useState({ x: 50, y: 50 })
@@ -116,14 +117,233 @@ const [request, setRequest] = useState({
     fetchRecommended()
   }, [product])
 
-  // Safety: if product isn't loaded show a friendly loading UI
-  if (loading) {
-    return <div className="p-8 text-center text-gray-500">Loading product...</div>
+if (loading) {
+  return (
+    <div className="px-4 py-4 md:p-6">
+      <div className="flex flex-col md:flex-row gap-6 md:gap-12 animate-pulse">
+
+        {/* Images */}
+        <div className="w-full md:w-1/2 flex flex-col-reverse md:flex-row gap-4">
+
+          {/* Thumbnails */}
+          <div className="flex md:flex-col gap-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="
+                  w-16 h-20
+                  md:w-20 md:h-24
+                  rounded-lg
+                  bg-gray-200
+                "
+              />
+            ))}
+          </div>
+
+          {/* Main Image */}
+          <div
+            className="
+              flex-1
+              rounded-2xl
+              bg-gray-200
+
+              h-[55vh]
+              md:h-[82vh]
+            "
+          />
+        </div>
+
+        {/* Product Info */}
+        <div className="w-full md:w-1/2 flex flex-col gap-5">
+
+          {/* Title */}
+          <div className="space-y-3">
+            <div className="h-10 w-4/5 bg-gray-200 rounded-lg" />
+            <div className="h-10 w-2/3 bg-gray-200 rounded-lg" />
+          </div>
+
+          {/* Description */}
+          <div className="space-y-2">
+            <div className="h-4 w-full bg-gray-200 rounded" />
+            <div className="h-4 w-[95%] bg-gray-200 rounded" />
+            <div className="h-4 w-[80%] bg-gray-200 rounded" />
+          </div>
+
+          {/* Price */}
+          <div className="flex gap-3 items-center">
+            <div className="h-8 w-28 bg-gray-200 rounded" />
+            <div className="h-6 w-20 bg-gray-200 rounded" />
+            <div className="h-6 w-16 bg-gray-200 rounded" />
+          </div>
+
+          <div className="h-5 w-40 bg-gray-200 rounded" />
+
+          {/* Sizes */}
+          <div>
+            <div className="h-6 w-24 bg-gray-200 rounded mb-4" />
+
+            <div className="flex gap-3 flex-wrap">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className="
+                    w-12 h-12
+                    md:w-14 md:h-14
+                    rounded-full
+                    bg-gray-200
+                  "
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="space-y-3 mt-2">
+            <div className="h-14 rounded-xl bg-gray-200" />
+            <div className="h-14 rounded-xl bg-gray-200" />
+            <div className="h-14 rounded-xl bg-gray-200" />
+          </div>
+
+          {/* Offer Cards */}
+          <div className="space-y-3 mt-4">
+            <div className="h-20 rounded-xl bg-gray-200" />
+            <div className="h-20 rounded-xl bg-gray-200" />
+          </div>
+
+          {/* Accordion */}
+          <div className="space-y-3 mt-4">
+            <div className="h-14 rounded-xl bg-gray-200" />
+            <div className="h-14 rounded-xl bg-gray-200" />
+            <div className="h-14 rounded-xl bg-gray-200" />
+          </div>
+        </div>
+      </div>
+
+      {/* Recommended Products Skeleton */}
+      <section className="mt-20">
+        <div className="h-10 w-72 bg-gray-200 rounded mb-8 animate-pulse" />
+
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="
+                aspect-[3/4]
+                rounded-2xl
+                bg-gray-200
+                animate-pulse
+              "
+            />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+if (!product) {
+  return (
+    <div className="min-h-[70vh] flex items-center justify-center px-4">
+      <div className="max-w-md text-center">
+        <div
+          className="
+            mx-auto mb-6
+
+            w-24 h-24
+
+            rounded-full
+
+            bg-gray-100
+
+            flex items-center justify-center
+          "
+        >
+          <span className="text-4xl">📦</span>
+        </div>
+
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+          Product Not Found
+        </h1>
+
+        <p className="text-gray-500 mb-8">
+          The product you're looking for may have been removed,
+          renamed, or is temporarily unavailable.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <button
+            onClick={() => navigate(-1)}
+            className="
+              px-6 py-3
+
+              border border-gray-300
+
+              rounded-xl
+
+              hover:bg-gray-50
+              transition
+            "
+          >
+            Go Back
+          </button>
+
+          <button
+            onClick={() => navigate('/products')}
+            className="
+              px-6 py-3
+
+              bg-black
+              text-white
+
+              rounded-xl
+
+              hover:bg-neutral-800
+              transition
+            "
+          >
+            Browse Products
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+const minSwipeDistance = 50;
+
+const onTouchStart = (e) => {
+  touchEndX.current = null;
+  touchStartX.current = e.targetTouches[0].clientX;
+};
+
+const onTouchMove = (e) => {
+  touchEndX.current = e.targetTouches[0].clientX;
+};
+
+const onTouchEnd = () => {
+  if (!touchStartX.current || !touchEndX.current) return;
+
+  const distance =
+    touchStartX.current - touchEndX.current;
+
+  const isLeftSwipe =
+    distance > minSwipeDistance;
+
+  const isRightSwipe =
+    distance < -minSwipeDistance;
+
+  if (isLeftSwipe) {
+    nextImage();
   }
 
-  if (!product) {
-    return <div className="p-8 text-center text-red-600">Product not found.</div>
+  if (isRightSwipe) {
+    prevImage();
   }
+};
+
+
+
 
   const images = Array.isArray(product.images) && product.images.length ? product.images : ["/images/placeholder.png"]
   const imageCount = images.length
@@ -271,15 +491,15 @@ flex-shrink-0
       flex gap-6
     "
 
-            onMouseEnter={() => {
+  onMouseEnter={() => {
+  if (window.innerWidth < 1024) return;
 
-              if (magnifierTimeout.current) {
-                clearTimeout(magnifierTimeout.current)
-              }
+  if (magnifierTimeout.current) {
+    clearTimeout(magnifierTimeout.current);
+  }
 
-              setShowMagnifier(true)
-            }}
-
+  setShowMagnifier(true);
+}}
             onMouseLeave={() => {
 
               magnifierTimeout.current =
@@ -305,9 +525,11 @@ flex-shrink-0
 
         cursor-crosshair
       "
-
+ onTouchStart={onTouchStart}
+  onTouchMove={onTouchMove}
+  onTouchEnd={onTouchEnd}
               onMouseMove={(e) => {
-
+if (window.innerWidth < 1024) return;
                 const {
                   left,
                   top,
@@ -347,11 +569,48 @@ className="
   object-cover
 "
               />
+<div
+  className="
+    absolute
+    bottom-3
+    right-3
 
+    bg-black/70
+    backdrop-blur-sm
+
+    text-white
+
+    px-3 py-1
+
+    rounded-full
+
+    text-xs
+
+    md:hidden
+  "
+>
+  {activeImage + 1}/{images.length}
+</div>
               {/* MAGNIFIER LENS */}
-
+<div className="flex justify-center gap-2 mt-3 md:hidden">
+  {images.map((_, idx) => (
+    <button
+      key={idx}
+      onClick={() => setActiveImage(idx)}
+      className={`
+        h-2 rounded-full transition-all
+        ${
+          activeImage === idx
+            ? "w-6 bg-black"
+            : "w-2 bg-gray-300"
+        }
+      `}
+    />
+  ))}
+</div>
 
             </Card>
+            
             {showMagnifier && (
               <div
                 className="
