@@ -184,36 +184,53 @@ const handleWishlist = (e) => {
 const wishlisted = wishlist.includes(product._id);
   return (
     <>
-      <div
-        className="
+<div
+  className="
     flex flex-col
     md:flex-row
 
-    gap-12
+    gap-6 md:gap-12
 
-    p-6
+    px-4 py-4 md:p-6
 
     relative
     items-start
   "
-      >
+>
         {/* Left: Images */}
-        <div
-          className="
+<div
+  className="
+    w-full
     md:w-1/2
-    flex gap-4
 
-    sticky
-    top-24
+    flex
+    flex-col-reverse
+    md:flex-row
+
+    gap-4
+
+    md:sticky
+    md:top-24
 
     self-start
-
     h-fit
   "
-        >
+>
 
           {/* THUMBNAILS */}
-          <div className="flex flex-col gap-3">
+          <div
+  className="
+    flex
+    md:flex-col
+
+    gap-3
+
+    overflow-x-auto
+    md:overflow-visible
+
+    pb-2
+  "
+>
             {images.map((img, idx) => (
               <img
                 key={idx}
@@ -223,7 +240,10 @@ const wishlisted = wishlist.includes(product._id);
                 onClick={() => setActiveImage(idx)}
 
                 className={`
-          w-20 h-24
+       w-16 h-20
+md:w-20 md:h-24
+
+flex-shrink-0
 
           object-cover
 
@@ -318,12 +338,14 @@ const wishlisted = wishlist.includes(product._id);
                   "Product image"
                 }
 
-                className="
-          w-full
-          max-h-[82vh]
+className="
+  w-full
 
-          object-cover
-        "
+  max-h-[55vh]
+  md:max-h-[82vh]
+
+  object-cover
+"
               />
 
               {/* MAGNIFIER LENS */}
@@ -415,33 +437,33 @@ isolate
 
         {/* Right: Info */}
         <div className="md:w-1/2 flex flex-col gap-4 " >
-          <h1 className="text-[44px] font-bold text-gray-900">{product.title}</h1>
+        <h1 className="text-[30px] md:text-[44px] leading-tight font-bold text-gray-900">{product.title}</h1>
 
-          <p className="text-[19px] text-gray-700 leading-relaxed">
+          <p className="text-base md:text-[19px] text-gray-700 leading-relaxed">
             Elevate your style with the <strong>{product.title}</strong>. Crafted from premium 100% cotton, this piece ensures unmatched comfort while maintaining a breathable, relaxed fit.
           </p>
 
-          <div className="flex items-baseline gap-3">
+          <div className="flex flex-wrap items-baseline gap-2 md:gap-3">
             {/* Discounted / Current Price */}
-            <span className="text-[30px] font-bold ">
+           <span className="text-2xl md:text-[30px] font-bold">
               ₹ {price.toFixed(2)}
             </span>
 
             {/* Original MRP — 20% higher, crossed out */}
-            <span className="text-gray-500 text-lg font-medium flex items-baseline gap-1">
+         <span className="text-gray-500 text-sm md:text-lg font-medium flex items-baseline gap-1">
               MRP
-              <span className="text-xl line-through text-gray-500">
+              <span className="text-base md:text-xl line-through text-gray-500">
                 ₹ {mrp.toFixed(2)}
               </span>
             </span>
 
             {/* Optional Discount Label */}
-            <span className="text-[21px] font-semibold text-red-600">
+           <span className="text-sm md:text-[21px] font-semibold text-red-600">
               (20% OFF)
             </span>
           </div>
 
-          <span className="text-green-700 text-[19px]">Inclusive of all taxes</span>
+         <span className="text-green-700 text-base md:text-[19px]">Inclusive of all taxes</span>
            {isOutOfStock && (
             <div  className="px-3 text-lg font-semibold text-white bg-red-600 rounded-full w-max">
               Out of Stock
@@ -452,7 +474,7 @@ isolate
           {/* Size Selection */}
           {product.inventory && (
             <div className="flex flex-col gap-4">
-              <label className="font-medium text-xl text-black">Select Size</label>
+              <label className="font-medium text-lg md:text-xl text-black">Select Size</label>
 
               <div className="flex gap-3 px-2 flex-wrap" >
                 {["XS", "S", "M", "L", "XL", "XXL"].map((size) => {
@@ -468,7 +490,8 @@ isolate
                       }
 
                       className={`
-      w-14 h-14
+   w-12 h-12
+md:w-14 md:h-14
 
       flex items-center
       justify-center
@@ -477,7 +500,7 @@ isolate
 
       border
 
-      text-base
+     text-sm md:text-base
       font-semibold
 
       transition-all
@@ -540,7 +563,7 @@ isolate
               </div>
 
               {selectedSize && (
-                <p className="text-sm text-gray-700 mt-2">
+               <p className="text-xs md:text-sm text-gray-700 mt-2">
                   Selected Size: <span className="font-semibold">{selectedSize}</span>
                 </p>
               )}
@@ -552,9 +575,14 @@ isolate
           {!isOutOfStock ? (
           <div className="mt-4 flex flex-col gap-3">
             {/* Row 1: Cart + Wishlist */}
-            <div className="flex gap-3">
+           <div className="flex flex-col sm:flex-row gap-3">
               <Button
-                className="w-1/2 flex items-center justify-center gap-2 text-xl py-6"
+              className="
+  w-full sm:w-1/2
+  flex items-center justify-center gap-2
+  text-base sm:text-xl
+  py-5 sm:py-6
+"
                 onClick={handleAddToCart}
               >
                 <ShoppingCart className="w-5 h-5" />
@@ -563,13 +591,15 @@ isolate
 
             <Button
   variant="outline"
-  className={`
-    w-1/2 flex items-center justify-center gap-2
-    border-black text-black
-    hover:bg-gray-100
-    text-base py-6
-    transition-all duration-200
-  `}
+className={`
+  w-full sm:w-1/2
+  flex items-center justify-center gap-2
+  border-black text-black
+  hover:bg-gray-100
+  text-sm sm:text-base
+  py-5 sm:py-6
+  transition-all duration-200
+`}
   onClick={handleWishlist}
   aria-pressed={wishlisted}
 >
@@ -590,7 +620,14 @@ isolate
             {/* Row 2: Buy Now */}
             <Button
               variant="outline"
-              className="w-full flex items-center justify-center gap-2 border-brand-600 text-brand-600 hover:bg-brand-50 text-xl py-6"
+             className="
+  w-full
+  flex items-center justify-center gap-2
+  border-brand-600 text-brand-600
+  hover:bg-brand-50
+  text-base sm:text-xl
+  py-5 sm:py-6
+"
               onClick={handleBuyNow}
             >
               <CreditCard className="w-5 h-5" />
@@ -640,39 +677,39 @@ isolate
           <Separator className="my-4" />
 
           <div className=" flex flex-col gap-3">
-            <p className="text-2xl font-semibold text-black">Offers For You</p>
+           <p className="text-xl md:text-2xl font-semibold text-black">Offers For You</p>
 
             {/* Offer 1 */}
-            <div className="border rounded-lg p-3 flex items-center gap-3 hover:bg-gray-50 transition  hover:-translate-y-[2px] hover:shadow-md">
-              <div className="p-2 bg-brand-100 rounded-full">
+           <div className="border rounded-lg p-3 md:p-4 flex items-center gap-2 md:gap-3 hover:bg-gray-50 transition hover:-translate-y-[2px] hover:shadow-md">
+              <div className="p-1.5 md:p-2 bg-brand-100 rounded-full">
                 <Gift className="w-6 h-6 text-brand-600" />
               </div>
               <div className="flex flex-col">
-                <p className="text-[16px] font-medium text-gray-800">
+              <p className="text-sm md:text-[16px] font-medium text-gray-800">
                   EXTRA 10% OFF ON PURCHASE OF ₹ 2999
                 </p>
-                <p className="text-[14px] text-gray-600">NORETURN</p>
+                <p className="text-xs md:text-[14px] text-gray-600">NORETURN</p>
               </div>
             </div>
 
             {/* Offer 2 */}
-            <div className="border rounded-lg p-3 flex items-center gap-3 hover:bg-gray-50 transition">
-              <div className="p-2 bg-brand-100 rounded-full">
+            <div className="border rounded-lg p-3 md:p-4 flex items-center gap-2 md:gap-3 hover:bg-gray-50 transition">
+             <div className="p-1.5 md:p-2 bg-brand-100 rounded-full">
                 <Gift className="w-6 h-6 text-brand-600" />
               </div>
               <div className="flex flex-col">
-                <p className="text-[16px] font-medium text-gray-800">EXTRA 10% OFF ON PURCHASE OF ₹ 3299</p>
-                <p className="text-[14px] text-gray-600">LEVI10</p>
+              <p className="text-sm md:text-[16px] font-medium text-gray-800">EXTRA 10% OFF ON PURCHASE OF ₹ 3299</p>
+                <p className="text-xs md:text-[14px] text-gray-600">LEVI10</p>
               </div>
             </div>
           </div>
 
           {/* Accordion */}
-          <Accordion type="single" collapsible className="text-xl w-full">
+          <Accordion type="single" collapsible   className="text-base md:text-xl w-full">
             <AccordionItem value="wash-care">
               <AccordionTrigger>Wash Care</AccordionTrigger>
               <AccordionContent>
-                <ul className="list-disc pl-5 text-gray-700">
+                <ul className="list-disc pl-5 text-sm md:text-base text-gray-700">
                   <li>Use cold water to prevent fading & shrinking</li>
                   <li>Avoid harsh detergents & wash inside out</li>
                   <li>Do not bleach or tumble dry</li>
@@ -683,7 +720,7 @@ isolate
             <AccordionItem value="delivery">
               <AccordionTrigger>Delivery / Shipping</AccordionTrigger>
               <AccordionContent>
-                <p className="text-gray-700">
+               <p className="text-sm md:text-base text-gray-700">
                   <strong>Metros:</strong> 2–4 days • <strong>Rest of India:</strong> 3–6 days
                 </p>
               </AccordionContent>
@@ -692,7 +729,7 @@ isolate
             <AccordionItem value="returns">
               <AccordionTrigger>Returns & Exchange</AccordionTrigger>
               <AccordionContent>
-                <p className="text-gray-700 text-sm">
+               <p className="text-xs md:text-sm text-gray-700">
                   Returns accepted for defective/incorrect items. Exchange fee: ₹399. Contact{" "}
                   <strong>garrib@gmail.com</strong>.
                 </p>
@@ -702,7 +739,7 @@ isolate
             <AccordionItem value="offers">
               <AccordionTrigger>Offers</AccordionTrigger>
               <AccordionContent>
-                <p className="text-gray-700 text-sm">
+                <p className="text-xs md:text-sm text-gray-700">
                   Add 2 products + 1 tank top → Apply code <strong>BUY2GET1</strong>.
                 </p>
               </AccordionContent>
@@ -715,17 +752,35 @@ isolate
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
     
     {/* Modal box */}
-    <div className="bg-white w-full max-w-md p-6 rounded-lg relative">
+    <div className="
+  bg-white
+
+  w-[95vw]
+  md:w-full
+
+  max-w-md
+
+  p-4 md:p-6
+
+  rounded-lg
+  relative
+">
 
       {/* Close button */}
       <button
-        className="absolute top-3 right-3 text-xl"
+       className="
+  absolute
+  top-2 md:top-3
+  right-2 md:right-3
+
+  text-lg md:text-xl
+"
         onClick={() => setShowRequest(false)}
       >
         ✕
       </button>
 
-      <h2 className="text-xl font-bold mb-4">
+     <h2 className="text-lg md:text-xl font-bold mb-4">
         Get Notified
       </h2>
 
@@ -738,7 +793,17 @@ isolate
         onChange={(e) =>
           setRequest({ ...request, email: e.target.value })
         }
-        className="w-full border"
+       className="
+  w-full
+
+  border
+
+  px-3 py-2
+
+  text-sm md:text-base
+
+  rounded-md
+"
       />
 </div>
       {/* Size */}
@@ -747,7 +812,7 @@ isolate
     Select Size
   </p>
 
-  <div className="flex flex-wrap gap-2">
+ <div className="flex flex-wrap gap-2 md:gap-3">
     {Object.keys(product.inventory || {}).map((size) => {
       const isSelected = request.size === size;
 
@@ -756,7 +821,15 @@ isolate
           key={size}
           type="button"
           onClick={() => setRequest({ ...request, size })}
-          className={`px-4 py-2 border text-sm font-medium transition-all duration-200
+          className={`  px-3 md:px-4
+  py-2
+
+  border
+
+  text-xs md:text-sm
+  font-medium
+
+  transition-all duration-200
             ${
               isSelected
                 ? "bg-black text-white border-black"
@@ -773,7 +846,18 @@ isolate
       {/* Submit */}
       <button
         onClick={handleRequestSubmit}
-        className="w-full bg-black text-white py-3 font-bold"
+        className="
+  w-full
+
+  bg-black
+  text-white
+
+  py-3
+
+  text-sm md:text-base
+
+  font-bold
+"
       >
         Notify Me
       </button>
@@ -783,47 +867,237 @@ isolate
       </div>
 
       {/* You Might Be Interested Section */}
-      <section className="mt-12 container px-6 pb-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
-          You Might Be Interested
+    <section className="mt-16 md:mt-24 px-4 md:px-6 pb-16">
+  <div className="max-w-[1600px] mx-auto">
+
+    {/* Header */}
+    <div className="flex items-end justify-between mb-8 md:mb-10">
+      <div>
+        <p className="text-sm uppercase tracking-[0.3em] text-neutral-500 mb-2">
+          Discover More
+        </p>
+
+        <h2 className="text-2xl md:text-5xl font-bold tracking-tight text-black">
+          You Might Also Like
         </h2>
+      </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {recommendedProducts.length ? (
-            recommendedProducts.map((prod) => (
+      <button
+        onClick={() => navigate("/shop")}
+        className="
+          hidden md:flex
+          items-center
+          text-sm
+          font-medium
+          text-neutral-700
+          hover:text-black
+          transition
+        "
+      >
+        View All →
+      </button>
+    </div>
+
+    {recommendedProducts.length ? (
+      <div
+        className="
+          grid
+          grid-cols-2
+          lg:grid-cols-3
+          gap-4
+          md:gap-8
+        "
+      >
+        {recommendedProducts.map((prod) => (
+          <article
+            key={prod._id}
+            role="button"
+            tabIndex={0}
+            onClick={() =>
+              navigate(`/product/${prod.slug || prod._id}`)
+            }
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                navigate(`/product/${prod.slug || prod._id}`);
+              }
+            }}
+            className="
+              group
+              cursor-pointer
+            "
+          >
+            {/* IMAGE */}
+            <div
+              className="
+                relative
+                overflow-hidden
+                rounded-2xl
+                bg-neutral-100
+
+                aspect-[3/4]
+
+                shadow-sm
+                transition-all
+                duration-500
+
+                group-hover:shadow-2xl
+              "
+            >
+              <img
+                src={
+                  prod.images?.[0] ||
+                  "/images/placeholder.png"
+                }
+                alt={prod.title}
+                className="
+                  w-full
+                  h-full
+                  object-cover
+
+                  transition-transform
+                  duration-700
+
+                  group-hover:scale-110
+                "
+              />
+
+              {/* Gradient */}
               <div
-                key={prod._id}
-                onClick={() => navigate(`/product/${prod.slug || prod._id}`)}
-                className="group relative rounded-xl overflow-hidden cursor-pointer shadow-sm hover:shadow-lg transition"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === "Enter") navigate(`/product/${prod.slug || prod._id}`) }}
-              >
-                <div className="relative w-full h-80 overflow-hidden">
-                  <img
-                    src={prod.images?.[0] || "/images/placeholder.png"}
-                    alt={prod.title}
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-70 group-hover:opacity-80 transition" />
-                </div>
+                className="
+                  absolute
+                  inset-0
+                  bg-gradient-to-t
+                  from-black/70
+                  via-black/20
+                  to-transparent
+                "
+              />
 
-                <div className="absolute bottom-4 left-4 right-4 group-hover:text-white transition">
-                  <h3 className="font-semibold text-lg truncate">{prod.title}</h3>
-                  <div className="flex items-center gap-2">
-                    <span className=" font-bold text-sm group-hover:text-white transition">
-                      ₹ {Number(prod.price ?? 0).toLocaleString()}
-                    </span>
-                    <span className=" text-xs group-hover:text-white transition">Inclusive of taxes</span>
-                  </div>
+              {/* Price Badge */}
+              <div
+                className="
+                  absolute
+                  top-3
+                  right-3
+
+                  bg-white/90
+                  backdrop-blur-md
+
+                  rounded-full
+
+                  px-3
+                  py-1
+
+                  text-xs
+                  md:text-sm
+                  font-semibold
+                "
+              >
+                ₹{Number(prod.price ?? 0).toLocaleString()}
+              </div>
+
+              {/* Bottom Content */}
+              <div
+                className="
+                  absolute
+                  bottom-0
+                  left-0
+                  right-0
+
+                  p-4
+                  md:p-6
+
+                  text-white
+                "
+              >
+                <h3
+                  className="
+                    text-sm
+                    md:text-xl
+
+                    font-semibold
+
+                    line-clamp-2
+                  "
+                >
+                  {prod.title}
+                </h3>
+
+                <p
+                  className="
+                    mt-1
+
+                    text-xs
+                    md:text-sm
+
+                    text-white/80
+                  "
+                >
+                  Premium Collection
+                </p>
+
+                <div
+                  className="
+                    mt-3
+
+                    flex
+                    items-center
+                    justify-between
+                  "
+                >
+                  <span
+                    className="
+                      text-xs
+                      md:text-sm
+                      text-white/90
+                    "
+                  >
+                    Inclusive of taxes
+                  </span>
+
+                  <span
+                    className="
+                      opacity-0
+                      translate-x-3
+
+                      group-hover:opacity-100
+                      group-hover:translate-x-0
+
+                      transition-all
+                      duration-300
+
+                      text-sm
+                      font-medium
+                    "
+                  >
+                    View →
+                  </span>
                 </div>
               </div>
-            ))
-          ) : (
-            <p className="text-gray-500">No recommendations at the moment.</p>
-          )}
-        </div>
-      </section>
+            </div>
+          </article>
+        ))}
+      </div>
+    ) : (
+      <div
+        className="
+          rounded-2xl
+          border
+          border-dashed
+          border-neutral-300
+
+          py-20
+
+          text-center
+        "
+      >
+        <p className="text-neutral-500">
+          No recommendations available right now.
+        </p>
+      </div>
+    )}
+  </div>
+</section>
     </>
   )
 }
