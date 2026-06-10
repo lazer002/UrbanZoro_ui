@@ -148,13 +148,13 @@ const BuildYourLookPage = () => {
       <div className="max-w-[1600px] mx-auto px-4 md:px-8 py-10">
         {/* CATEGORY BAR */}
 
-        <div className="sticky top-0 z-30 bg-white py-5 mb-10">
+        <div className="sticky top-0 z-30 bg-white py-2 mb-10">
           <div className="flex gap-3 overflow-x-auto">
             <button
               onClick={() =>
                 setActiveCategory("all")
               }
-              className={`px-5 py-3 rounded-full border text-sm font-semibold whitespace-nowrap transition
+              className={`px-5 py-3 rounded-full border text-md font-semibold whitespace-nowrap transition
                 ${
                   activeCategory === "all"
                     ? "bg-black text-white border-black"
@@ -173,7 +173,7 @@ const BuildYourLookPage = () => {
                     category._id
                   )
                 }
-                className={`px-5 py-3 rounded-full border text-sm font-semibold whitespace-nowrap transition
+                className={`px-5 py-3 rounded-full border text-md font-semibold whitespace-nowrap transition
                   ${
                     activeCategory ===
                     category._id
