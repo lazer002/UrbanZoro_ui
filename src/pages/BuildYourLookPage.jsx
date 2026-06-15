@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import api from "@/utils/config";
 import { useCart } from "@/state/CartContext";
-
+import { toast } from "react-hot-toast";
 const BuildYourLookPage = () => {
   const { addBundleToCart } = useCart();
 
@@ -65,22 +65,31 @@ const BuildYourLookPage = () => {
     );
   }, [products, activeCategory]);
 
-  const toggleProduct = (product) => {
-    const exists = selectedProducts.some(
-      (p) => p._id === product._id
-    );
+const toggleProduct = (product) => {
+  const exists = selectedProducts.some(
+    (p) => p._id === product._id
+  );
 
-    if (exists) {
-      setSelectedProducts((prev) =>
-        prev.filter((p) => p._id !== product._id)
-      );
-    } else {
-      setSelectedProducts((prev) => [
-        ...prev,
-        product,
-      ]);
-    }
-  };
+  // remove if already selected
+  if (exists) {
+    setSelectedProducts((prev) =>
+      prev.filter((p) => p._id !== product._id)
+    );
+    return;
+  }
+
+  // limit to 3 products
+  if (selectedProducts.length >= 3) {
+    toast.error("You can select only 3 pieces");
+    return;
+  }
+
+  // add product
+  setSelectedProducts((prev) => [
+    ...prev,
+    product,
+  ]);
+};
 
   const subtotal = useMemo(() => {
     return selectedProducts.reduce(
@@ -112,55 +121,71 @@ const BuildYourLookPage = () => {
   return (
     <div className="bg-white min-h-screen">
       {/* HERO */}
-      <section className="relative h-[65vh] overflow-hidden">
-        <img
-          src={
-            filteredProducts?.[0]?.images?.[0] ||
-            "/images/placeholder.png"
-          }
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-        />
+   <section className="border-b border-neutral-200">
+  <div className="max-w-[1600px] mx-auto px-6 md:px-10 py-14">
+    <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-10">
+      <div>
+        <p className="uppercase tracking-[0.35em] text-xs text-neutral-500">
+          Personal Styling
+        </p>
 
-        <div className="absolute inset-0 bg-black/55" />
+        <h1 className="mt-4 text-5xl md:text-7xl font-black tracking-tight leading-none">
+          BUILD YOUR LOOK
+        </h1>
 
-        <div className="relative z-10 h-full flex items-center justify-center text-center text-white px-5">
-          <div>
-            <p className="uppercase tracking-[0.45em] text-xs mb-5">
-              Personal Styling
-            </p>
+        <p className="mt-5 max-w-2xl text-neutral-600 text-lg">
+          Curate your outfit from our latest collection.
+          Select sizes, mix pieces and unlock bundle savings.
+        </p>
+      </div>
 
-            <h1 className="text-5xl md:text-7xl font-black leading-none">
-              BUILD
-              <br />
-              YOUR LOOK
-            </h1>
+      <div className="flex gap-12">
+        <div>
+          <div className="text-4xl font-black">
+            {selectedProducts.length}
+          </div>
 
-            <p className="max-w-xl mx-auto mt-6 text-white/80">
-              Create your own outfit from our
-              latest collection and unlock
-              exclusive bundle savings.
-            </p>
+          <div className="text-sm text-neutral-500 uppercase tracking-widest">
+            Items
           </div>
         </div>
-      </section>
+
+        <div>
+          <div className="text-4xl font-black">
+            10%
+          </div>
+
+          <div className="text-sm text-neutral-500 uppercase tracking-widest">
+            Savings
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
       <div className="max-w-[1600px] mx-auto px-4 md:px-8 py-10">
         {/* CATEGORY BAR */}
 
-        <div className="sticky top-0 z-30 bg-white py-2 mb-10">
+      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md py-4 mb-10 border-b">
           <div className="flex gap-3 overflow-x-auto">
             <button
               onClick={() =>
                 setActiveCategory("all")
               }
-              className={`px-5 py-3 rounded-full border text-md font-semibold whitespace-nowrap transition
-                ${
-                  activeCategory === "all"
-                    ? "bg-black text-white border-black"
-                    : "border-neutral-300 hover:border-black"
-                }
-              `}
+         className={`
+pb-3
+text-sm
+uppercase
+tracking-[0.2em]
+border-b-2
+
+${
+  activeCategory === "all"
+    ? "border-black text-black"
+    : "border-transparent text-neutral-400"
+}
+`}
             >
               All
             </button>
@@ -173,14 +198,20 @@ const BuildYourLookPage = () => {
                     category._id
                   )
                 }
-                className={`px-5 py-3 rounded-full border text-md font-semibold whitespace-nowrap transition
-                  ${
-                    activeCategory ===
-                    category._id
-                      ? "bg-black text-white border-black"
-                      : "border-neutral-300 hover:border-black"
-                  }
-                `}
+          className={`
+pb-3
+text-sm
+uppercase
+tracking-[0.2em]
+border-b-2
+transition-all
+
+${
+  activeCategory === category._id
+    ? "border-black text-black"
+    : "border-transparent text-neutral-400 hover:text-black"
+}
+`}
               >
                 {category.name}
               </button>
@@ -188,7 +219,7 @@ const BuildYourLookPage = () => {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-[1fr_420px] gap-10">
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_380px] gap-12">
           {/* PRODUCTS */}
 
           <div>
@@ -202,7 +233,7 @@ const BuildYourLookPage = () => {
                 No products found
               </div>
             ) : (
-              <div className="grid sm:grid-cols-2 xl:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
                 {filteredProducts.map(
                   (product) => {
                     const selected =
@@ -217,13 +248,11 @@ const BuildYourLookPage = () => {
                         className="
                         group
                         overflow-hidden
-                        rounded-[30px]
-                        border
-                        bg-white
+                       bg-white
                         transition-all
                         duration-500
                         hover:-translate-y-1
-                        hover:shadow-2xl
+                       
                       "
                       >
                         <div className="overflow-hidden">
@@ -236,12 +265,12 @@ const BuildYourLookPage = () => {
                               product.title
                             }
                             className="
-                            h-[500px]
+                            h-[360px]
                             w-full
                             object-cover
                             transition-transform
                             duration-700
-                            group-hover:scale-105
+                            group-hover:scale-[1.03]
                           "
                           />
                         </div>
@@ -270,9 +299,7 @@ const BuildYourLookPage = () => {
 
 {/* SIZE SELECTOR */}
 <div className="mt-4 flex flex-wrap gap-2">
-  {Object.entries(
-    product.inventory || {}
-  )
+  {Object.entries(product.inventory || {})
     .filter(([_, qty]) => qty > 0)
     .map(([size]) => (
       <button
@@ -285,17 +312,18 @@ const BuildYourLookPage = () => {
           }))
         }
         className={`
-          h-10 w-10
-          rounded-full
+          h-8
+          px-3
+
           border
-          text-sm
+
+          text-xs
           font-medium
-          transition
+
+          transition-all
 
           ${
-            selectedSizes[
-              product._id
-            ] === size
+            selectedSizes[product._id] === size
               ? "bg-black text-white border-black"
               : "border-neutral-300 hover:border-black"
           }
@@ -307,27 +335,38 @@ const BuildYourLookPage = () => {
 </div>
 
 <button
-  disabled={
-    !selectedSizes[product._id]
-  }
-  onClick={() =>
-    toggleProduct(product)
-  }
-  className={`mt-5 w-full py-3 rounded-full text-sm font-semibold transition
+  disabled={!selectedSizes[product._id]}
+  onClick={() => toggleProduct(product)}
+  className={`
+    mt-5
+
+    w-full
+
+    py-3
+
+    border
+
+    uppercase
+    tracking-[0.15em]
+    text-xs
+    font-semibold
+
+    transition-all
+
     ${
       !selectedSizes[product._id]
-        ? "bg-neutral-300 cursor-not-allowed"
+        ? "border-neutral-300 text-neutral-400 cursor-not-allowed"
         : selected
-        ? "bg-green-600 text-white"
-        : "bg-black text-white"
+        ? "bg-black text-white border-black"
+        : "border-black hover:bg-black hover:text-white"
     }
   `}
 >
   {!selectedSizes[product._id]
-    ? "SELECT SIZE"
+    ? "Select Size"
     : selected
-    ? "ADDED TO LOOK"
-    : "ADD TO LOOK"}
+    ? "Added"
+    : "Add To Look"}
 </button>
                         </div>
                       </div>
@@ -352,77 +391,89 @@ const BuildYourLookPage = () => {
               shadow-xl
             "
           >
-            <h2 className="text-2xl font-black">
-              Your Look
-            </h2>
+         <div className="border-b pb-6">
+  <p className="uppercase tracking-[0.25em] text-xs text-neutral-500">
+    Styling Board
+  </p>
 
-            <p className="text-neutral-500 mt-1">
-              {selectedProducts.length} items
-              selected
-            </p>
+  <h2 className="mt-3 text-3xl font-black">
+    Your Look
+  </h2>
+
+  <p className="mt-2 text-neutral-500">
+    {selectedProducts.length}/3 selected pieces
+  </p>
+</div>
 
             {/* Preview */}
 
  {/* Preview */}
 
-<div className="mt-6">
-  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-    {selectedProducts.map((product) => (
-      <div
-        key={product._id}
-        className="relative shrink-0"
-      >
-        <img
-          src={product.images?.[0]}
-          alt={product.title}
-          className="
-            w-16
-            h-16
-            rounded-xl
-            object-cover
-            border
-          "
-        />
+<div className="mt-8 space-y-4">
+  {selectedProducts.map((product) => (
+    <div
+      key={product._id}
+      className="
+        flex
+        gap-4
 
-        <button
-          onClick={() => {
-            setSelectedProducts((prev) =>
-              prev.filter(
-                (p) => p._id !== product._id
-              )
-            );
+        border-b
+        pb-4
+      "
+    >
+      <img
+        src={product.images?.[0]}
+        alt={product.title}
+        className="
+          w-20
+          h-24
 
-            setSelectedSizes((prev) => {
-              const copy = { ...prev };
-              delete copy[product._id];
-              return copy;
-            });
-          }}
-          className="
-            absolute
-            top-1
-            right-1
-            w-5
-            h-5
-            rounded-full
-            bg-black
-            text-white
-            text-xs
-            flex
-            items-center
-            justify-center
-          "
-        >
-          ×
-        </button>
+          object-cover
+        "
+      />
+
+      <div className="flex-1">
+        <p className="font-medium">
+          {product.title}
+        </p>
+
+        <p className="text-sm text-neutral-500 mt-1">
+          Size: {selectedSizes[product._id]}
+        </p>
+
+        <p className="mt-2 font-semibold">
+          ₹{Number(product.price).toLocaleString()}
+        </p>
       </div>
-    ))}
-  </div>
+
+      <button
+        onClick={() => {
+          setSelectedProducts((prev) =>
+            prev.filter(
+              (p) => p._id !== product._id
+            )
+          );
+
+          setSelectedSizes((prev) => {
+            const copy = { ...prev };
+            delete copy[product._id];
+            return copy;
+          });
+        }}
+        className="
+          text-neutral-400
+          hover:text-black
+        "
+      >
+        ×
+      </button>
+    </div>
+  ))}
 </div>
 
             {/* Selected */}
 
-            <div className="space-y-4 mt-8 max-h-[300px] overflow-y-auto pr-2">
+            {/* <div className="space-y-4 mt-8 max-h-[300px] overflow-y-auto pr-2">
               {selectedProducts.map(
                 (product) => (
                   <div
@@ -444,9 +495,9 @@ const BuildYourLookPage = () => {
                   </div>
                 )
               )}
-            </div>
+            </div> */}
 
-            <div className="border-t mt-8 pt-6 space-y-3">
+           <div className=" pt-8 space-y-4">
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span>
@@ -465,7 +516,7 @@ const BuildYourLookPage = () => {
                 </span>
               </div>
 
-              <div className="flex justify-between text-xl font-black">
+              <div className="flex justify-between text-3xl font-black">
                 <span>Total</span>
 
                 <span>
@@ -480,16 +531,27 @@ const BuildYourLookPage = () => {
                 !selectedProducts.length
               }
               onClick={handleAddLook}
-              className="
-                w-full
-                mt-6
-                bg-black
-                text-white
-                py-4
-                rounded-full
-                font-semibold
-                disabled:opacity-40
-              "
+            className="
+  w-full
+
+  mt-8
+
+  bg-black
+  text-white
+
+  py-4
+
+  uppercase
+  tracking-[0.25em]
+  text-xs
+  font-semibold
+
+  transition-all
+
+  hover:opacity-90
+
+  disabled:opacity-40
+"
             >
               ADD LOOK TO CART
             </button>
