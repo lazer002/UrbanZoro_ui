@@ -173,11 +173,72 @@ const BundlesPage = () => {
 </div>
 
         {/* States */}
-        {loading && <div className="text-gray-500 text-center py-20">Loading...</div>}
-        {error && <div className="text-red-500 text-center py-20">{error}</div>}
-        {!loading && !error && bundles.length === 0 && (
-          <div className="text-gray-500 text-center py-20">No bundles available yet.</div>
-        )}
+        {loading && (
+  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    {[...Array(6)].map((_, i) => (
+      <div
+        key={i}
+        className="bg-white rounded-[28px] overflow-hidden border border-neutral-200 animate-pulse"
+      >
+        {/* Image */}
+        <div className="h-[420px] md:h-[520px] bg-neutral-200" />
+
+        {/* Content */}
+        <div className="p-6 md:p-8">
+
+          {/* Title */}
+          <div className="h-3 w-24 bg-neutral-200 rounded mb-4" />
+
+          <div className="h-8 w-3/4 bg-neutral-200 rounded mb-6" />
+
+          {/* Price */}
+          <div className="flex gap-3 mb-6">
+            <div className="h-8 w-24 bg-neutral-200 rounded" />
+            <div className="h-8 w-20 bg-neutral-100 rounded" />
+          </div>
+
+          {/* Description */}
+          <div className="space-y-2 mb-6">
+            <div className="h-3 bg-neutral-200 rounded" />
+            <div className="h-3 bg-neutral-200 rounded w-5/6" />
+            <div className="h-3 bg-neutral-200 rounded w-4/6" />
+          </div>
+
+          {/* Avatars */}
+          <div className="flex -space-x-3 mb-6">
+            {[...Array(4)].map((_, idx) => (
+              <div
+                key={idx}
+                className="w-14 h-14 rounded-2xl bg-neutral-200 border-2 border-white"
+              />
+            ))}
+          </div>
+
+          {/* Stats */}
+          <div className="flex justify-between mb-6">
+            <div>
+              <div className="h-3 w-16 bg-neutral-200 rounded mb-2" />
+              <div className="h-6 w-24 bg-neutral-200 rounded" />
+            </div>
+
+            <div>
+              <div className="h-3 w-12 bg-neutral-200 rounded mb-2" />
+              <div className="h-6 w-10 bg-neutral-200 rounded" />
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-3">
+            <div className="flex-1 h-12 rounded-full bg-neutral-200" />
+            <div className="flex-1 h-12 rounded-full bg-neutral-300" />
+          </div>
+
+        </div>
+      </div>
+    ))}
+  </div>
+)}
+ 
 
         {/* Grid */}
         {!loading && bundles.length > 0 && (

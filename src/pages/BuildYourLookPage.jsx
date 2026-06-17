@@ -2,9 +2,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import api from "@/utils/config";
 import { useCart } from "@/state/CartContext";
 import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import { Trash, Trash2,CircleX} from "lucide-react";
 const BuildYourLookPage = () => {
   const { addBundleToCart } = useCart();
-
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
 
@@ -13,16 +15,34 @@ const BuildYourLookPage = () => {
   const [activeCategory, setActiveCategory] =
     useState("all");
 
-  const [selectedProducts, setSelectedProducts] =
-    useState([]);
+const [selectedProducts, setSelectedProducts] = useState(() => {
+  const saved = localStorage.getItem("build-look-products");
+  return saved ? JSON.parse(saved) : [];
+});
 
-  const [selectedSizes, setSelectedSizes] =
-    useState({});
+const [selectedSizes, setSelectedSizes] = useState(() => {
+  const saved = localStorage.getItem("build-look-sizes");
+  return saved ? JSON.parse(saved) : {};
+});
 
   useEffect(() => {
     fetchProducts();
     fetchCategories();
   }, []);
+
+useEffect(() => {
+  localStorage.setItem(
+    "build-look-products",
+    JSON.stringify(selectedProducts)
+  );
+}, [selectedProducts]);
+
+useEffect(() => {
+  localStorage.setItem(
+    "build-look-sizes",
+    JSON.stringify(selectedSizes)
+  );
+}, [selectedSizes]);
 
   async function fetchProducts() {
     try {
@@ -54,16 +74,29 @@ const BuildYourLookPage = () => {
     }
   }
 
-  const filteredProducts = useMemo(() => {
-    if (activeCategory === "all") {
-      return products;
-    }
+ const filteredProducts = useMemo(() => {
+  const list =
+    activeCategory === "all"
+      ? products
+      : products.filter(
+          (product) =>
+            product.category?._id === activeCategory
+        );
 
-    return products.filter(
-      (product) =>
-        product.category?._id === activeCategory
-    );
-  }, [products, activeCategory]);
+  const selectedIds = new Set(
+    selectedProducts.map((p) => p._id)
+  );
+
+  const selected = list.filter((p) =>
+    selectedIds.has(p._id)
+  );
+
+  const remaining = list.filter(
+    (p) => !selectedIds.has(p._id)
+  );
+
+  return [...selected, ...remaining];
+}, [products, activeCategory, selectedProducts]);
 
 const toggleProduct = (product) => {
   const exists = selectedProducts.some(
@@ -117,12 +150,17 @@ const toggleProduct = (product) => {
       customBundle,
       selectedSizes
     );
+    localStorage.removeItem("build-look-products");
+localStorage.removeItem("build-look-sizes");
+
+setSelectedProducts([]);
+setSelectedSizes({});
   };
   return (
     <div className="bg-white min-h-screen">
       {/* HERO */}
    <section className="border-b border-neutral-200">
-  <div className="max-w-[1600px] mx-auto px-6 md:px-10 py-14">
+  <div className="max-w-[1800px] mx-auto px-6 md:px-10 py-14">
     <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-10">
       <div>
         <p className="uppercase tracking-[0.35em] text-xs text-neutral-500">
@@ -164,7 +202,7 @@ const toggleProduct = (product) => {
   </div>
 </section>
 
-      <div className="max-w-[1600px] mx-auto px-4 md:px-8 py-10">
+      <div className="max-w-[1800px] mx-auto px-4 md:px-8 py-10">
         {/* CATEGORY BAR */}
 
       <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md py-4 mb-10 border-b">
@@ -219,21 +257,53 @@ ${
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-[minmax(0,1fr)_380px] gap-12">
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_440px] gap-12">
           {/* PRODUCTS */}
 
           <div>
-            {loading ? (
-              <div className="text-center py-20">
-                Loading...
-              </div>
-            ) : filteredProducts.length ===
-              0 ? (
+          {loading ? (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+    {[...Array(9)].map((_, i) => (
+      <div
+        key={i}
+        className="animate-pulse"
+      >
+        {/* Image */}
+        <div className="h-[460px] w-full bg-neutral-200 rounded-xl" />
+
+        <div className="p-6">
+
+          {/* Category */}
+          <div className="h-3 w-20 bg-neutral-200 rounded mb-4" />
+
+          {/* Title */}
+          <div className="h-6 w-3/4 bg-neutral-200 rounded mb-4" />
+
+          {/* Price */}
+          <div className="h-6 w-24 bg-neutral-200 rounded mb-6" />
+
+          {/* Sizes */}
+          <div className="flex gap-2 mb-5">
+            {[...Array(4)].map((_, idx) => (
+              <div
+                key={idx}
+                className="h-8 w-10 bg-neutral-200 rounded"
+              />
+            ))}
+          </div>
+
+          {/* Button */}
+          <div className="h-12 w-full bg-neutral-200 rounded" />
+        </div>
+      </div>
+    ))}
+  </div>
+) : filteredProducts.length === 0 ? (
               <div className="text-center py-20">
                 No products found
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredProducts.map(
                   (product) => {
                     const selected =
@@ -245,6 +315,7 @@ ${
                     return (
                       <div
                         key={product._id}
+                      
                         className="
                         group
                         overflow-hidden
@@ -255,7 +326,27 @@ ${
                        
                       "
                       >
-                        <div className="overflow-hidden">
+                        <div className="relative overflow-hidden">
+                          {selected && (
+  <div
+    className="
+      absolute
+      top-3
+      right-3
+      z-10
+      bg-black
+      text-white
+      text-[10px]
+      uppercase
+      tracking-widest
+      px-3
+      py-1
+      rounded-full
+    "
+  >
+    Selected
+  </div>
+)}
                           <img
                             src={
                               product
@@ -265,13 +356,15 @@ ${
                               product.title
                             }
                             className="
-                            h-[360px]
+                            h-[460px]
                             w-full
                             object-cover
                             transition-transform
                             duration-700
+                            border border-black/10
                             group-hover:scale-[1.03]
                           "
+                            onClick={() => navigate(`/product/${product._id}`)}
                           />
                         </div>
 
@@ -290,7 +383,7 @@ ${
                             }
                           </h3>
 
-             <p className="mt-3 font-semibold">
+             <p className="mt-3 font-semibold text-lg">
   ₹
   {Number(
     product.price
@@ -299,39 +392,54 @@ ${
 
 {/* SIZE SELECTOR */}
 <div className="mt-4 flex flex-wrap gap-2">
-  {Object.entries(product.inventory || {})
-    .filter(([_, qty]) => qty > 0)
-    .map(([size]) => (
-      <button
-        key={size}
-        type="button"
-        onClick={() =>
-          setSelectedSizes((prev) => ({
-            ...prev,
-            [product._id]: size,
-          }))
+{Object.entries(product.inventory || {}).map(
+  ([size, qty]) => (
+    <button
+      key={size}
+      type="button"
+      disabled={qty <= 0 || selected}
+      onClick={() =>
+        setSelectedSizes((prev) => ({
+          ...prev,
+          [product._id]: size,
+        }))
+      }
+      className={`
+        relative
+        h-8
+        px-3
+        border
+        text-xs
+        font-medium
+        transition-all
+
+        ${
+          qty <= 0
+            ? "cursor-not-allowed border-neutral-200 text-neutral-400 line-through"
+            : ""
         }
-        className={`
-          h-8
-          px-3
 
-          border
+        ${
+          selected
+            ? "pointer-events-none opacity-50"
+            : ""
+        }
 
-          text-xs
-          font-medium
+        ${
+          selectedSizes[product._id] === size
+            ? "bg-black text-white border-black"
+            : qty > 0
+            ? "border-neutral-300 hover:border-black"
+            : ""
+        }
+      `}
+    >
+      {size}
 
-          transition-all
-
-          ${
-            selectedSizes[product._id] === size
-              ? "bg-black text-white border-black"
-              : "border-neutral-300 hover:border-black"
-          }
-        `}
-      >
-        {size}
-      </button>
-    ))}
+   
+    </button>
+  )
+)}
 </div>
 
 <button
@@ -362,11 +470,21 @@ ${
     }
   `}
 >
-  {!selectedSizes[product._id]
-    ? "Select Size"
-    : selected
-    ? "Added"
-    : "Add To Look"}
+ {!selectedSizes[product._id] ? (
+  "Select Size"
+) : selected ? (
+  <>
+    <span className="group-hover:hidden">
+      ✓ Added
+    </span>
+
+    <span className="hidden group-hover:inline">
+      Remove
+    </span>
+  </>
+) : (
+  "Add To Look"
+)}
 </button>
                         </div>
                       </div>
@@ -465,7 +583,7 @@ ${
           hover:text-black
         "
       >
-        ×
+       <CircleX className=" h-10 "/>
       </button>
     </div>
   ))}

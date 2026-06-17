@@ -8,7 +8,7 @@ import { useCart } from "@/state/CartContext";
 import api  from "@/utils/config";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import {Loader2, User } from "lucide-react";
+import {Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { getDeliveryDate } from "@/utils/public";
 import { useAuth } from "@/state/AuthContext.jsx";
 import { loadRazorpay } from "@/utils/loader.js";
@@ -40,12 +40,18 @@ const [discountSuccess, setDiscountSuccess] = useState("");
 const [loadingDiscount, setLoadingDiscount] = useState(false);
 const [selectedAddress, setSelectedAddress] = useState(null);
 const [processingPayment, setProcessingPayment] = useState(false);
+const [openBundles, setOpenBundles] = useState({});
 const addresses = user?.addresses || [];
 const [addressMode, setAddressMode] = useState(addresses.length > 0 ? "saved" : "new"); 
 const defaultAddress =
 addresses.find((a) => a.isDefault) || addresses[0];
 
-
+const toggleBundle = (key) => {
+  setOpenBundles((prev) => ({
+    ...prev,
+    [key]: !prev[key],
+  }));
+};
 
 useEffect(() => {
   if (addresses.length) {
@@ -95,10 +101,10 @@ const applyDiscount = async () => {
 };
 
   const subtotal = items.reduce((sum, i) => {
-    return sum + (i.bundle?.price || i.product?.price || 0) * i.quantity;
+    return sum + (i.bundle?.price || i.product?.price || i.customBundle?.price || 0) * i.quantity;
   }, 0);
 
-  const shippingFee = 100;
+  const shippingFee = 0;
 const finalTotal = Math.max(0, subtotal - discountValue + shippingFee);
 
 
@@ -356,132 +362,285 @@ discountCode: discountCode,
   );
 
   return (
-    <div className="max-w-7xl mx-auto p-6 grid lg:grid-cols-3 gap-10 text-gray-900">
+    <div className="max-w-7xl mx-auto p-6 grid lg:grid-cols-3 gap-10 text-gray-900 mb-12">
 
       {/* Left Section */}
-      <div className="lg:col-span-2 flex flex-col gap-8  overflow-y-auto my-14">
+   <div className="lg:col-span-2 space-y-6">
 
-        {/* Contact */}
-        <h2 className="text-xl font-semibold border-b pb-2">Contact</h2>
-        <div className="space-y-3">
-          {renderInput(contactEmail, setContactEmail, "Enter your email")}
-          <div className="flex items-center gap-2">
-            <Checkbox id="news" checked={subscribeNews} onChange={() => setSubscribeNews(!subscribeNews)} />
-            <Label htmlFor="news">Email me with news and offers</Label>
-          </div>
-        </div>
-
-<RadioGroup value={addressMode} onValueChange={setAddressMode}>
-  <div className="flex items-center gap-2">
-    <RadioGroupItem value="saved" id="saved" />
-    <Label htmlFor="saved">Use saved address</Label>
+  {/* Header */}
+  <div>
+    <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+      Checkout
+    </h1>
+    <p className="text-sm text-gray-500 mt-1">
+      Complete your order securely
+    </p>
   </div>
 
-  <div className="flex items-center gap-2">
-    <RadioGroupItem value="new" id="new" />
-    <Label htmlFor="new">Enter new address</Label>
+  {/* Contact */}
+  <div className="bg-white border border-gray-200 rounded-2xl p-6">
+    <h2 className="text-lg font-semibold text-gray-900 mb-5">
+      Contact Information
+    </h2>
+
+    <div className="space-y-4">
+      {renderInput(contactEmail, setContactEmail, "Email address")}
+
+      <div className="flex items-center gap-3 text-sm text-gray-600">
+        <Checkbox
+          id="news"
+          checked={subscribeNews}
+          onChange={() => setSubscribeNews(!subscribeNews)}
+        />
+        <Label htmlFor="news">
+          Email me with news and offers
+        </Label>
+      </div>
+    </div>
   </div>
-</RadioGroup>
-{addressMode === "saved" && addresses.length > 0 && (
-  <div className="space-y-2 mt-3">
-    {addresses.map((addr) => (
-      <div
-        key={addr._id}
-        onClick={() => setSelectedAddress(addr)}
-        className={`p-3 border rounded-lg cursor-pointer ${
-          selectedAddress?._id === addr._id
-            ? "border-black"
-            : "border-gray-300"
+
+  {/* Address */}
+  <div className="bg-white border border-gray-200 rounded-2xl p-6">
+    <h2 className="text-lg font-semibold text-gray-900 mb-5">
+      Delivery Address
+    </h2>
+
+{addresses.length > 0 && (
+  <div className="mb-6">
+    <div className="inline-flex p-1 rounded-xl bg-gray-100 border border-gray-500">
+      <button
+        type="button"
+        onClick={() => setAddressMode("saved")}
+        className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+          addressMode === "saved"
+            ? "bg-black shadow-sm text-white"
+            : "text-gray-500 hover:text-black"
         }`}
       >
-        <p className="font-medium">{addr.name}</p>
-        <p className="text-sm text-gray-600">
-          {addr.address}, {addr.city}, {addr.state} - {addr.zip}
-        </p>
-        <p className="text-sm text-gray-500">{addr.phone}</p>
+        Saved Address
+      </button>
 
-        {addr.isDefault && (
-          <span className="text-xs text-green-600 font-medium">
-            Default
-          </span>
-        )}
-      </div>
-    ))}
+      <button
+        type="button"
+        onClick={() => setAddressMode("new")}
+        className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+          addressMode === "new"
+            ? "bg-black shadow-sm text-white"
+            : "text-gray-500 hover:text-black"
+        }`}
+      >
+        New Address
+      </button>
+    </div>
   </div>
 )}
 
-        {/* Delivery */}
-        
-        <h2 className="text-xl font-semibold border-b pb-2">Delivery</h2>
-        {addressMode === "new" && (<>
-        <div className="grid md:grid-cols-2 gap-4">
+    {addressMode === "saved" && addresses.length > 0 && (
+      <div className="space-y-3">
+        {addresses.map((addr) => (
+          <div
+            key={addr._id}
+            onClick={() => setSelectedAddress(addr)}
+            className={`p-4 rounded-xl border cursor-pointer transition-all ${
+              selectedAddress?._id === addr._id
+                ? "border-black bg-black/[0.03]"
+                : "border-gray-200 hover:border-gray-400"
+            }`}
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="font-medium text-gray-900">
+                  {addr.name}
+                </p>
+
+                <p className="text-sm text-gray-600 mt-1">
+                  {addr.address}
+                </p>
+
+                <p className="text-sm text-gray-600">
+                  {addr.city}, {addr.state} - {addr.zip}
+                </p>
+
+                <p className="text-sm text-gray-500 mt-1">
+                  {addr.phone}
+                </p>
+              </div>
+
+              {addr.isDefault && (
+                <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
+                  Default
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {addressMode === "new" && (
+      <div className="space-y-4">
+
+        <div className="grid md:grid-cols-2 gap-3">
           {renderInput(firstName, setFirstName, "First name")}
           {renderInput(lastName, setLastName, "Last name")}
         </div>
+
         {renderInput(address, setAddress, "Address")}
-        {renderInput(apartment, setApartment, "Apartment, suite, etc. (optional)")}
+
+        {renderInput(
+          apartment,
+          setApartment,
+          "Apartment, suite, etc. (optional)"
+        )}
+
         {renderInput(city, setCity, "City")}
-        <div className="grid md:grid-cols-3 gap-4">
+
+        <div className="grid md:grid-cols-3 gap-3">
           {renderInput(state, setState, "State")}
           {renderInput(zip, setZip, "ZIP / Postal Code")}
           {renderInput(country, setCountry, "Country")}
         </div>
+
         {renderInput(phone, setPhone, "Phone number")}
-        <div className="flex items-center gap-2">
-          <Checkbox id="save" checked={saveInfo} onChange={() => setSaveInfo(!saveInfo)} />
-          <Label htmlFor="save">Save this information for next time</Label>
-        </div>
-</>)}
-        {/* Shipping Method */}
-        <div className="bg-white shadow rounded-xl p-6 space-y-4 border border-gray-200">
-          <h2 className="text-xl font-semibold border-b pb-2">Shipping Method</h2>
-          <RadioGroup value={shippingMethod} onValueChange={setShippingMethod} className="space-y-3">
-            <div className="flex justify-between items-center p-4 rounded-lg border-2 border-black bg-gray-50">
-              <div className="flex items-center gap-3">
-                <RadioGroupItem value="free" id="free" />
-                <Label htmlFor="free" className="font-medium">Free Shipping</Label>
-              </div>
-              <span className="font-medium">Free</span>
-            </div>
-            <p className="text-sm text-gray-600 ml-8">
-              Get your order by <strong>{getDeliveryDate()}</strong>.
-            </p>
-          </RadioGroup>
+
+        <div className="flex items-center gap-3 text-sm text-gray-600">
+          <Checkbox
+            id="save"
+            checked={saveInfo}
+            onChange={() => setSaveInfo(!saveInfo)}
+          />
+          <Label htmlFor="save">
+            Save this information for next time
+          </Label>
         </div>
 
-        {/* Payment Method */}
-        <div className="bg-white shadow rounded-xl p-6 space-y-4 border border-gray-200">
-          <h2 className="text-xl font-semibold border-b pb-2">Payment Method</h2>
-          <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-3">
-            {[
-              { id: "cod", label: "Cash on Delivery", note: "Pay on delivery" },
-              { id: "razorpay", label: "Razorpay", note: "Online Payment" }
-            ].map((m) => (
-              <div key={m.id} className="flex justify-between items-center p-4 rounded-lg border bg-gray-50">
-                <div className="flex items-center gap-3">
-                  <RadioGroupItem value={m.id} id={m.id} />
-                  <Label htmlFor={m.id} className="font-medium">{m.label}</Label>
-                </div>
-                <span className="font-medium">{m.note}</span>
-              </div>
-            ))}
-          </RadioGroup>
-        </div>
       </div>
+    )}
+  </div>
+
+  {/* Shipping */}
+<div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+
+  <div className="px-6 py-5 border-b border-gray-100">
+    <h2 className="text-lg font-semibold">
+      Shipping
+    </h2>
+  </div>
+
+  <div className="p-6">
+    <div className="flex items-center justify-between">
+
+      <div className="flex items-center gap-4">
+
+        <div className="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center">
+          🚚
+        </div>
+
+        <div>
+          <p className="font-medium text-gray-900">
+            Standard Delivery
+          </p>
+
+          <p className="text-sm text-gray-500">
+            Estimated arrival: {getDeliveryDate()}
+          </p>
+        </div>
+
+      </div>
+
+      <span className="text-sm font-semibold px-3 py-1 rounded-full bg-green-100 text-green-700">
+        FREE
+      </span>
+
+    </div>
+  </div>
+
+</div>
+
+  {/* Payment */}
+<div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+  <div className="px-6 py-5 border-b border-gray-100">
+    <h2 className="text-lg font-semibold text-gray-900">
+      Payment Method
+    </h2>
+  </div>
+
+  <RadioGroup
+    value={paymentMethod}
+    onValueChange={setPaymentMethod}
+  >
+    {[
+      {
+        id: "cod",
+        label: "Cash on Delivery",
+        note: "Pay when your order arrives",
+      },
+      {
+        id: "razorpay",
+        label: "Razorpay",
+        note: "UPI, Cards, Net Banking & Wallets",
+      },
+    ].map((m, index) => (
+      <label
+        key={m.id}
+        htmlFor={m.id}
+        className={`flex items-center justify-between p-6 cursor-pointer transition-colors ${
+          paymentMethod === m.id
+            ? "bg-black/[0.02]"
+            : "hover:bg-gray-50"
+        } ${
+          index !== 1
+            ? "border-b border-gray-100"
+            : ""
+        }`}
+      >
+        <div className="flex items-center gap-4">
+          <RadioGroupItem
+            value={m.id}
+            id={m.id}
+          />
+
+          <div>
+            <p className="font-medium text-gray-900">
+              {m.label}
+            </p>
+
+            <p className="text-sm text-gray-500">
+              {m.note}
+            </p>
+          </div>
+        </div>
+
+        {m.id === "razorpay" && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs px-2 py-1 rounded-md bg-gray-100 text-gray-600">
+              UPI
+            </span>
+
+            <span className="text-xs px-2 py-1 rounded-md bg-gray-100 text-gray-600">
+              CARD
+            </span>
+          </div>
+        )}
+      </label>
+    ))}
+  </RadioGroup>
+</div>
+</div>
 
       {/* Right Section */}
       <div className="lg:col-span-1 sticky top-20 bg-white shadow rounded-xl p-6 flex flex-col gap-6 h-fit">
 
         <h2 className="text-xl font-semibold border-b pb-3">Order Summary</h2>
 
-        <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
+        <div className="space-y-4 max-h-64 overflow-y-auto pr-2"  data-lenis-prevent>
           {items.map((item) => {
-            const isBundle = !!item.bundle;
-            const key = isBundle ? item.bundle._id : `${item.product._id}-${item.size || "default"}`;
+           const isBundle =  !!item.bundle || !!item.customBundle;
+          const key = item.bundle  ? item.bundle._id  : item.customBundle  ? item._id  : `${item.product?._id}-${item.size || "default"}`;
             const imageSrc = isBundle ? item.mainImage || item.bundle?.images?.[0] : item.product?.images?.[0];
-            const title = isBundle ? item.bundle.title : item.product.title;
+           const title = item.bundle  ? item.bundle.title  : item.customBundle  ? item.customBundle.title  : item.product?.title;
             const quantity = item.quantity;
-            const price = isBundle ? item.bundle.price : item.product.price;
+           const price = item.bundle  ? item.bundle.price  : item.customBundle  ? item.customBundle.price  : item.product?.price || 0;
 
             return (
               <div key={key} className="flex flex-col border-b border-gray-200 pb-3">
@@ -496,31 +655,65 @@ discountCode: discountCode,
                   <span className="font-semibold text-gray-900 mt-1">₹{(quantity * price).toFixed(2)}</span>
                 </div>
 
-                {isBundle && item.bundleProducts?.length > 0 && (
-                  <div className="ml-8 mt-2 space-y-2">
-                    {item.bundleProducts.map((bp, i) => (
-                      <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
-                        <img src={bp.product.images?.[0] || "/placeholder.jpg"} alt={bp.product.title} className="w-12 h-12 rounded border object-cover" />
-                        <div className="flex flex-col">
-                          <span className="font-medium">{bp.product.title}</span>
-                          {bp.size && <span className="text-xs text-gray-500">Size: {bp.size}</span>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+{isBundle && item.bundleProducts?.length > 0 && (
+  <div className="mt-3">
+<button
+  onClick={() => toggleBundle(key)}
+  className="flex items-center gap-1 mt-2 text-[11px] uppercase tracking-wide text-gray-500 hover:text-black transition"
+>
+  {openBundles[key] ? "Hide Items" : "View Items"}
+  <ChevronDown
+    className={`w-3 h-3 transition-transform duration-300 ${
+      openBundles[key] ? "rotate-180" : ""
+    }`}
+  />
+</button>
+
+<div
+  className={`overflow-hidden transition-all duration-300 ${
+    openBundles[key]
+      ? "max-h-96 opacity-100 mt-3"
+      : "max-h-0 opacity-0"
+  }`}
+>
+  <div className="ml-6 border-l border-gray-200 pl-4 space-y-3">
+    {item.bundleProducts.map((bp, i) => (
+      <div key={i} className="flex items-center gap-3">
+        <img
+          src={bp.product.images?.[0]}
+          alt={bp.product.title}
+          className="w-10 h-10 object-cover"
+        />
+
+        <div>
+          <p className="text-xs uppercase font-medium text-gray-900">
+            {bp.product.title}
+          </p>
+
+          {bp.size && (
+            <p className="text-[11px] uppercase text-gray-500">
+              Size {bp.size}
+            </p>
+          )}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+  </div>
+)}
               </div>
             );
           })}
         </div>
 
         {/* Discount / Gift Code */}
-      <div className="mt-4 flex gap-2 items-center">
+      <div className=" flex gap-2 items-center edit-modal">
   <input
     type="text"
     placeholder="Discount code or gift card"
     // placeholder="We Add Soon"
-    className="px-4 w-full py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-black focus:border-black text-sm"
+    className="px-4 w-full py-2 rounded-md focus:ring-2 focus:ring-black focus:border-black text-sm"
     value={discountCode}
     onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
   
@@ -552,9 +745,9 @@ discountCode: discountCode,
 
 
         {/* Cost Summary */}
-        <div className="mt-4 border-t border-gray-200 pt-4 flex flex-col gap-2">
+        <div className="mt-1 border-t border-gray-200 pt-4 flex flex-col gap-2">
           <div className="flex justify-between text-gray-800"><span>Subtotal</span><span>₹{subtotal.toFixed(2)}</span></div>
-          <div className="flex justify-between text-gray-800"><span>Shipping</span><span>₹100.00</span></div>
+          <div className="flex justify-between text-gray-800"><span>Shipping</span><span>₹{shippingFee.toFixed(2)}</span></div>
           <div className="flex justify-between font-bold text-lg mt-2"><span>Total (INR)</span><span>₹{finalTotal.toFixed(2)}</span></div>
         </div>
 
