@@ -17,8 +17,7 @@ export default function CheckoutPage() {
     const { user } = useAuth();
   const navigate = useNavigate();
   const { items , clearCart } = useCart();
-  const [shippingMethod, setShippingMethod] = useState("free");
-  const [billingSame, setBillingSame] = useState(true);
+
   const [contactEmail, setContactEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -28,6 +27,7 @@ export default function CheckoutPage() {
   const [state, setState] = useState("Delhi");
   const [zip, setZip] = useState("110045");
   const [country, setCountry] = useState("India");
+  const [shippingMethod, setShippingMethod] = useState("free");
   const [phone, setPhone] = useState("");
   const [subscribeNews, setSubscribeNews] = useState(false);
   const [saveInfo, setSaveInfo] = useState(false);
@@ -41,6 +41,7 @@ const [loadingDiscount, setLoadingDiscount] = useState(false);
 const [selectedAddress, setSelectedAddress] = useState(null);
 const [processingPayment, setProcessingPayment] = useState(false);
 const [openBundles, setOpenBundles] = useState({});
+const [errors, setErrors] = useState({});
 const addresses = user?.addresses || [];
 const [addressMode, setAddressMode] = useState(addresses.length > 0 ? "saved" : "new"); 
 const defaultAddress =
@@ -108,13 +109,85 @@ const applyDiscount = async () => {
 const finalTotal = Math.max(0, subtotal - discountValue + shippingFee);
 
 
+useEffect(() => {
+  if (!saveInfo) return;
+
+  localStorage.setItem(
+    "checkoutInfo",
+    JSON.stringify({
+      contactEmail,
+      firstName,
+      lastName,
+      address,
+      apartment,
+      city,
+      state,
+      zip,
+      country,
+      phone,
+    })
+  );
+}, [
+  saveInfo,
+  contactEmail,
+  firstName,
+  lastName,
+  address,
+  apartment,
+  city,
+  state,
+  zip,
+  country,
+  phone,
+]);
+
+useEffect(() => {
+  const saved = localStorage.getItem("checkoutInfo");
+
+  if (!saved) return;
+
+  try {
+    const data = JSON.parse(saved);
+
+    setContactEmail(data.contactEmail || "");
+    setFirstName(data.firstName || "");
+    setLastName(data.lastName || "");
+    setAddress(data.address || "");
+    setApartment(data.apartment || "");
+    setCity(data.city || "");
+    setState(data.state || "Delhi");
+    setZip(data.zip || "");
+    setCountry(data.country || "India");
+    setPhone(data.phone || "");
+
+    setSaveInfo(true);
+  } catch (err) {
+    console.error(err);
+  }
+}, []);
 
 
 // razewrpay integration
 
 
 
+const saveAddressIfNeeded = async () => {
+  if (!user || !saveInfo || addressMode !== "new") return;
 
+  try {
+    await api.post("/address", {
+      name: `${firstName} ${lastName}`,
+      address,
+      city,
+      state,
+      zip,
+      country,
+      phone,
+    });
+  } catch (err) {
+    console.error("Address save failed", err);
+  }
+};
 
 
 const handlePayment = async () => {
@@ -152,7 +225,6 @@ if (i.bundle) {
 }).filter(Boolean),
       paymentMethod: "razorpay",
       shippingMethod,
-      billingSame,
       contactEmail,
       subscribeNews,
       source: "web",
@@ -204,6 +276,19 @@ if (i.bundle) {
           });
 
           if (verifyRes.data.success) {
+  if (subscribeNews && contactEmail) {
+    try {
+      await api.post("/newsletter", {
+        email: contactEmail,
+      });
+    } catch (err) {
+      console.error("Newsletter subscribe failed", err);
+    }
+  }
+  // Save address for logged-in users
+  await saveAddressIfNeeded();
+
+
             toast.success("Payment Successful!");
 
             if (typeof clearCart === "function") {
@@ -255,7 +340,6 @@ const handleCODOrder = async () => {
     if (loading) return;
     setLoading(true);
 
-    // 1) Basic validation
 if (
   addressMode === "new" &&
   (!contactEmail || !firstName || !lastName || !address || !phone || !city || !state || !zip)
@@ -264,29 +348,54 @@ if (
   setLoading(false);
   return;
 }
-const orderItems = items.map((i) => {
-  if (i.bundle) {
-  return {
-    bundleId: i.bundle._id,
-    quantity: i.quantity,
-    mainImage: i.mainImage ,
+const orderItems = items
+  .map((i) => {
 
-    // 🔥 ADD THIS
-    bundleProducts: (i.bundleProducts || []).map((bp) => ({
-      productId: bp.product._id,
-      variant: bp.size || "",
-      quantity: bp.quantity || 1
-    }))
-  };
-}
+    // Regular Bundle
+    if (i.bundle) {
+      return {
+        bundleId: i.bundle._id,
+        quantity: i.quantity,
+        mainImage: i.mainImage,
 
-  // 🛍️ Product
-  return {
-    productId: i.product._id,
-    quantity: Number(i.quantity) || 1,
-    variant: i.size || ""
-  };
-});
+        bundleProducts: (i.bundleProducts || []).map((bp) => ({
+          productId: bp.product._id,
+          variant: bp.size || "",
+          quantity: bp.quantity || 1,
+        })),
+      };
+    }
+
+    // Custom Bundle
+    if (i.customBundle) {
+      return {
+        customBundle: true,
+        title: i.customBundle.title,
+        price: i.customBundle.price,
+        quantity: i.quantity,
+        mainImage: i.mainImage,
+
+        bundleProducts: (i.bundleProducts || []).map((bp) => ({
+          productId: bp.product._id,
+          variant: bp.size || "",
+          quantity: bp.quantity || 1,
+        })),
+      };
+    }
+
+    // Product
+    if (i.product) {
+      return {
+        productId: i.product._id,
+        quantity: Number(i.quantity) || 1,
+        variant: i.size || "",
+      };
+    }
+
+    return null;
+  })
+  .filter(Boolean);
+
     const orderData = {
       items: orderItems,
       contactEmail,
@@ -296,7 +405,6 @@ const orderItems = items.map((i) => {
       shippingMethod,
       paymentMethod: "cod",
 discountCode: discountCode,
-      billingSame,
       shippingAddress: {
         firstName,
         lastName,
@@ -313,6 +421,14 @@ discountCode: discountCode,
     const response = await api.post("/orders/create", orderData);
     const data = response.data;
 
+
+if (subscribeNews && contactEmail) {
+  await api.post("/newsletter", {
+    email: contactEmail,
+  });
+}
+  // Save address for logged-in users
+  await saveAddressIfNeeded();
     if (!data || !data.success) {
       const msg = data?.message || "Failed to create order. Please try again.";
       toast.error(msg);
@@ -324,6 +440,7 @@ discountCode: discountCode,
     toast.success(
       `Order placed successfully! ${orderNumber ? `Order: ${orderNumber}` : `ID: ${data.orderId}`}`
     );
+    
 
     try {
       if (typeof clearCart === "function") {
@@ -347,20 +464,125 @@ discountCode: discountCode,
 
 
   const handlePlaceOrder = () => {
+    if (!validateForm()) return;
     paymentMethod === "razorpay" ? handlePayment() : handleCODOrder();
   };
 
-  const renderInput = (value, setValue, placeholder) => (
-    <div className="border border-gray-300 rounded-lg">
+
+const validateForm = () => {
+  const newErrors = {};
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!contactEmail.trim()) {
+    newErrors.contactEmail = "Email is required";
+  } else if (!emailRegex.test(contactEmail)) {
+    newErrors.contactEmail = "Enter a valid email";
+  }
+
+  if (addressMode === "new") {
+    if (!firstName.trim()) {
+      newErrors.firstName = "First name is required";
+    }
+
+    if (!lastName.trim()) {
+      newErrors.lastName = "Last name is required";
+    }
+
+    if (!phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    } else if (!/^[6-9]\d{9}$/.test(phone)) {
+      newErrors.phone = "Enter a valid 10 digit mobile number";
+    }
+
+    if (!address.trim()) {
+      newErrors.address = "Address is required";
+    }
+
+    if (!city.trim()) {
+      newErrors.city = "City is required";
+    }
+
+    if (!state.trim()) {
+      newErrors.state = "State is required";
+    }
+
+    if (!zip.trim()) {
+      newErrors.zip = "PIN code is required";
+    } else if (!/^\d{6}$/.test(zip)) {
+      newErrors.zip = "Enter a valid PIN code";
+    }
+  }
+
+  if (!items.length) {
+    toast.error("Your cart is empty");
+    return false;
+  }
+
+  setErrors(newErrors);
+
+  if (Object.keys(newErrors).length > 0) {
+    toast.error(Object.values(newErrors)[0]);
+    return false;
+  }
+
+  return true;
+};
+
+
+
+const renderInput = (
+  value,
+  setValue,
+  placeholder,
+  field
+) => (
+  <div>
+    <div
+      className={`
+        border
+        rounded-lg
+        transition-all
+
+        ${
+          errors[field]
+            ? "border-red-500"
+            : "border-gray-300"
+        }
+
+        focus-within:border-black
+      `}
+    >
       <Input
         placeholder={placeholder}
         value={value}
-        onChange={(e) => setValue(e.target.value)}
-        className="w-full px-4 py-3 rounded-md focus:ring-2 focus:ring-black focus:border-black border-none"
+        onChange={(e) => {
+          setValue(e.target.value);
+
+          setErrors((prev) => ({
+            ...prev,
+            [field]: "",
+          }));
+        }}
+        className="
+          w-full
+          px-4
+          py-3
+          border-none
+          shadow-none
+          focus-visible:ring-0
+          focus-visible:ring-offset-0
+        "
       />
     </div>
-  );
 
+    {errors[field] && (
+      <p className="mt-1 text-xs text-red-500">
+        {errors[field]}
+      </p>
+    )}
+  </div>
+);
   return (
     <div className="max-w-7xl mx-auto p-6 grid lg:grid-cols-3 gap-10 text-gray-900 mb-12">
 
@@ -384,14 +606,17 @@ discountCode: discountCode,
     </h2>
 
     <div className="space-y-4">
-      {renderInput(contactEmail, setContactEmail, "Email address")}
+      {renderInput(contactEmail, setContactEmail, "Email address", "contactEmail")}
 
       <div className="flex items-center gap-3 text-sm text-gray-600">
-        <Checkbox
-          id="news"
-          checked={subscribeNews}
-          onChange={() => setSubscribeNews(!subscribeNews)}
-        />
+<Checkbox
+  id="news"
+  checked={subscribeNews}
+  onChange={(checked) => {
+    console.log("NEWS:", checked);
+    setSubscribeNews(checked);
+  }}
+/>
         <Label htmlFor="news">
           Email me with news and offers
         </Label>
@@ -481,34 +706,41 @@ discountCode: discountCode,
       <div className="space-y-4">
 
         <div className="grid md:grid-cols-2 gap-3">
-          {renderInput(firstName, setFirstName, "First name")}
-          {renderInput(lastName, setLastName, "Last name")}
+          {renderInput(firstName, setFirstName, "First name", "firstName")}
+          {renderInput(lastName, setLastName, "Last name", "lastName")}
         </div>
 
-        {renderInput(address, setAddress, "Address")}
+        {renderInput(address, setAddress, "Address", "address")}
 
         {renderInput(
           apartment,
           setApartment,
-          "Apartment, suite, etc. (optional)"
+          "Apartment, suite, etc. (optional)",
+          "apartment"
         )}
 
-        {renderInput(city, setCity, "City")}
+        {renderInput(city, setCity, "City", "city")}
 
         <div className="grid md:grid-cols-3 gap-3">
-          {renderInput(state, setState, "State")}
-          {renderInput(zip, setZip, "ZIP / Postal Code")}
-          {renderInput(country, setCountry, "Country")}
+          {renderInput(state, setState, "State", "state")}
+          {renderInput(zip, setZip, "ZIP / Postal Code", "zip")}
+          {renderInput(country, setCountry, "Country", "country")}
         </div>
 
-        {renderInput(phone, setPhone, "Phone number")}
+        {renderInput(phone, setPhone, "Phone number", "phone")}
 
         <div className="flex items-center gap-3 text-sm text-gray-600">
-          <Checkbox
-            id="save"
-            checked={saveInfo}
-            onChange={() => setSaveInfo(!saveInfo)}
-          />
+      <Checkbox
+  id="save"
+  checked={saveInfo}
+  onChange={(checked) => {
+    setSaveInfo(Boolean(checked));
+
+    if (!checked) {
+      localStorage.removeItem("checkoutInfo");
+    }
+  }}
+/>
           <Label htmlFor="save">
             Save this information for next time
           </Label>
