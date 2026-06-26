@@ -3,7 +3,12 @@ import api from "@/utils/config";
 import { useCart } from "@/state/CartContext";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { Trash, Trash2,CircleX} from "lucide-react";
+import {
+  CircleX,
+  ChevronRight,
+  X,
+  ShoppingBag,
+} from "lucide-react";
 const BuildYourLookPage = () => {
   const { addBundleToCart } = useCart();
   const navigate = useNavigate();
@@ -11,38 +16,38 @@ const BuildYourLookPage = () => {
   const [categories, setCategories] = useState([]);
 
   const [loading, setLoading] = useState(true);
-
+  const [showLookDrawer, setShowLookDrawer] = useState(false);
   const [activeCategory, setActiveCategory] =
     useState("all");
 
-const [selectedProducts, setSelectedProducts] = useState(() => {
-  const saved = localStorage.getItem("build-look-products");
-  return saved ? JSON.parse(saved) : [];
-});
+  const [selectedProducts, setSelectedProducts] = useState(() => {
+    const saved = localStorage.getItem("build-look-products");
+    return saved ? JSON.parse(saved) : [];
+  });
 
-const [selectedSizes, setSelectedSizes] = useState(() => {
-  const saved = localStorage.getItem("build-look-sizes");
-  return saved ? JSON.parse(saved) : {};
-});
+  const [selectedSizes, setSelectedSizes] = useState(() => {
+    const saved = localStorage.getItem("build-look-sizes");
+    return saved ? JSON.parse(saved) : {};
+  });
 
   useEffect(() => {
     fetchProducts();
     fetchCategories();
   }, []);
 
-useEffect(() => {
-  localStorage.setItem(
-    "build-look-products",
-    JSON.stringify(selectedProducts)
-  );
-}, [selectedProducts]);
+  useEffect(() => {
+    localStorage.setItem(
+      "build-look-products",
+      JSON.stringify(selectedProducts)
+    );
+  }, [selectedProducts]);
 
-useEffect(() => {
-  localStorage.setItem(
-    "build-look-sizes",
-    JSON.stringify(selectedSizes)
-  );
-}, [selectedSizes]);
+  useEffect(() => {
+    localStorage.setItem(
+      "build-look-sizes",
+      JSON.stringify(selectedSizes)
+    );
+  }, [selectedSizes]);
 
   async function fetchProducts() {
     try {
@@ -74,55 +79,55 @@ useEffect(() => {
     }
   }
 
- const filteredProducts = useMemo(() => {
-  const list =
-    activeCategory === "all"
-      ? products
-      : products.filter(
+  const filteredProducts = useMemo(() => {
+    const list =
+      activeCategory === "all"
+        ? products
+        : products.filter(
           (product) =>
             product.category?._id === activeCategory
         );
 
-  const selectedIds = new Set(
-    selectedProducts.map((p) => p._id)
-  );
-
-  const selected = list.filter((p) =>
-    selectedIds.has(p._id)
-  );
-
-  const remaining = list.filter(
-    (p) => !selectedIds.has(p._id)
-  );
-
-  return [...selected, ...remaining];
-}, [products, activeCategory, selectedProducts]);
-
-const toggleProduct = (product) => {
-  const exists = selectedProducts.some(
-    (p) => p._id === product._id
-  );
-
-  // remove if already selected
-  if (exists) {
-    setSelectedProducts((prev) =>
-      prev.filter((p) => p._id !== product._id)
+    const selectedIds = new Set(
+      selectedProducts.map((p) => p._id)
     );
-    return;
-  }
 
-  // limit to 3 products
-  if (selectedProducts.length >= 3) {
-    toast.error("You can select only 3 pieces");
-    return;
-  }
+    const selected = list.filter((p) =>
+      selectedIds.has(p._id)
+    );
 
-  // add product
-  setSelectedProducts((prev) => [
-    ...prev,
-    product,
-  ]);
-};
+    const remaining = list.filter(
+      (p) => !selectedIds.has(p._id)
+    );
+
+    return [...selected, ...remaining];
+  }, [products, activeCategory, selectedProducts]);
+
+  const toggleProduct = (product) => {
+    const exists = selectedProducts.some(
+      (p) => p._id === product._id
+    );
+
+    // remove if already selected
+    if (exists) {
+      setSelectedProducts((prev) =>
+        prev.filter((p) => p._id !== product._id)
+      );
+      return;
+    }
+
+    // limit to 3 products
+    if (selectedProducts.length >= 3) {
+      toast.error("You can select only 3 pieces");
+      return;
+    }
+
+    // add product
+    setSelectedProducts((prev) => [
+      ...prev,
+      product,
+    ]);
+  };
 
   const subtotal = useMemo(() => {
     return selectedProducts.reduce(
@@ -151,78 +156,91 @@ const toggleProduct = (product) => {
       selectedSizes
     );
     localStorage.removeItem("build-look-products");
-localStorage.removeItem("build-look-sizes");
+    localStorage.removeItem("build-look-sizes");
 
-setSelectedProducts([]);
-setSelectedSizes({});
+    setSelectedProducts([]);
+    setSelectedSizes({});
   };
+
+
+  const removeProduct = (productId) => {
+    setSelectedProducts((prev) =>
+      prev.filter((p) => p._id !== productId)
+    );
+
+    setSelectedSizes((prev) => {
+      const copy = { ...prev };
+      delete copy[productId];
+      return copy;
+    });
+  };
+
   return (
     <div className="bg-white min-h-screen">
       {/* HERO */}
-   <section className="border-b border-neutral-200">
-  <div className="max-w-[1800px] mx-auto px-6 md:px-10 py-14">
-    <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-10">
-      <div>
-        <p className="uppercase tracking-[0.35em] text-xs text-neutral-500">
-          Personal Styling
-        </p>
+      <section className="border-b border-neutral-200">
+        <div className="max-w-[1800px] mx-auto px-6 md:px-10 py-14">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-10">
+            <div>
+              <p className="uppercase tracking-[0.35em] text-xs text-neutral-500">
+                Personal Styling
+              </p>
 
-        <h1 className="mt-4 text-5xl md:text-7xl font-black tracking-tight leading-none">
-          BUILD YOUR LOOK
-        </h1>
+              <h1 className="mt-4 text-5xl md:text-7xl font-black tracking-tight leading-none">
+                BUILD YOUR LOOK
+              </h1>
 
-        <p className="mt-5 max-w-2xl text-neutral-600 text-lg">
-          Curate your outfit from our latest collection.
-          Select sizes, mix pieces and unlock bundle savings.
-        </p>
-      </div>
+              <p className="mt-5 max-w-2xl text-neutral-600 text-lg">
+                Curate your outfit from our latest collection.
+                Select sizes, mix pieces and unlock bundle savings.
+              </p>
+            </div>
 
-      <div className="flex gap-12">
-        <div>
-          <div className="text-4xl font-black">
-            {selectedProducts.length}
-          </div>
+            <div className="flex gap-12">
+              <div>
+                <div className="text-4xl font-black">
+                  {selectedProducts.length}
+                </div>
 
-          <div className="text-sm text-neutral-500 uppercase tracking-widest">
-            Items
+                <div className="text-sm text-neutral-500 uppercase tracking-widest">
+                  Items
+                </div>
+              </div>
+
+              <div>
+                <div className="text-4xl font-black">
+                  10%
+                </div>
+
+                <div className="text-sm text-neutral-500 uppercase tracking-widest">
+                  Savings
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div>
-          <div className="text-4xl font-black">
-            10%
-          </div>
-
-          <div className="text-sm text-neutral-500 uppercase tracking-widest">
-            Savings
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+      </section>
 
       <div className="max-w-[1800px] mx-auto px-4 md:px-8 py-10">
         {/* CATEGORY BAR */}
 
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md py-4 mb-10 border-b">
+        <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-md py-4 mb-10 border-b">
           <div className="flex gap-3 overflow-x-auto">
             <button
               onClick={() =>
                 setActiveCategory("all")
               }
-         className={`
+              className={`
 pb-3
 text-sm
 uppercase
 tracking-[0.2em]
 border-b-2
 
-${
-  activeCategory === "all"
-    ? "border-black text-black"
-    : "border-transparent text-neutral-400"
-}
+${activeCategory === "all"
+                  ? "border-black text-black"
+                  : "border-transparent text-neutral-400"
+                }
 `}
             >
               All
@@ -236,7 +254,7 @@ ${
                     category._id
                   )
                 }
-          className={`
+                className={`
 pb-3
 text-sm
 uppercase
@@ -244,11 +262,10 @@ tracking-[0.2em]
 border-b-2
 transition-all
 
-${
-  activeCategory === category._id
-    ? "border-black text-black"
-    : "border-transparent text-neutral-400 hover:text-black"
-}
+${activeCategory === category._id
+                    ? "border-black text-black"
+                    : "border-transparent text-neutral-400 hover:text-black"
+                  }
 `}
               >
                 {category.name}
@@ -261,44 +278,44 @@ ${
           {/* PRODUCTS */}
 
           <div>
-          {loading ? (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-    {[...Array(9)].map((_, i) => (
-      <div
-        key={i}
-        className="animate-pulse"
-      >
-        {/* Image */}
-        <div className="h-[460px] w-full bg-neutral-200 rounded-xl" />
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                {[...Array(9)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="animate-pulse"
+                  >
+                    {/* Image */}
+                    <div className="h-[460px] w-full bg-neutral-200 rounded-xl" />
 
-        <div className="p-6">
+                    <div className="p-6">
 
-          {/* Category */}
-          <div className="h-3 w-20 bg-neutral-200 rounded mb-4" />
+                      {/* Category */}
+                      <div className="h-3 w-20 bg-neutral-200 rounded mb-4" />
 
-          {/* Title */}
-          <div className="h-6 w-3/4 bg-neutral-200 rounded mb-4" />
+                      {/* Title */}
+                      <div className="h-6 w-3/4 bg-neutral-200 rounded mb-4" />
 
-          {/* Price */}
-          <div className="h-6 w-24 bg-neutral-200 rounded mb-6" />
+                      {/* Price */}
+                      <div className="h-6 w-24 bg-neutral-200 rounded mb-6" />
 
-          {/* Sizes */}
-          <div className="flex gap-2 mb-5">
-            {[...Array(4)].map((_, idx) => (
-              <div
-                key={idx}
-                className="h-8 w-10 bg-neutral-200 rounded"
-              />
-            ))}
-          </div>
+                      {/* Sizes */}
+                      <div className="flex gap-2 mb-5">
+                        {[...Array(4)].map((_, idx) => (
+                          <div
+                            key={idx}
+                            className="h-8 w-10 bg-neutral-200 rounded"
+                          />
+                        ))}
+                      </div>
 
-          {/* Button */}
-          <div className="h-12 w-full bg-neutral-200 rounded" />
-        </div>
-      </div>
-    ))}
-  </div>
-) : filteredProducts.length === 0 ? (
+                      {/* Button */}
+                      <div className="h-12 w-full bg-neutral-200 rounded" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="text-center py-20">
                 No products found
               </div>
@@ -315,7 +332,7 @@ ${
                     return (
                       <div
                         key={product._id}
-                      
+
                         className="
                         group
                         overflow-hidden
@@ -328,8 +345,8 @@ ${
                       >
                         <div className="relative overflow-hidden">
                           {selected && (
-  <div
-    className="
+                            <div
+                              className="
       absolute
       top-3
       right-3
@@ -343,10 +360,10 @@ ${
       py-1
       rounded-full
     "
-  >
-    Selected
-  </div>
-)}
+                            >
+                              Selected
+                            </div>
+                          )}
                           <img
                             src={
                               product
@@ -383,28 +400,28 @@ ${
                             }
                           </h3>
 
-             <p className="mt-3 font-semibold text-lg">
-  ₹
-  {Number(
-    product.price
-  ).toLocaleString()}
-</p>
+                          <p className="mt-3 font-semibold text-lg">
+                            ₹
+                            {Number(
+                              product.price
+                            ).toLocaleString()}
+                          </p>
 
-{/* SIZE SELECTOR */}
-<div className="mt-4 flex flex-wrap gap-2">
-{Object.entries(product.inventory || {}).map(
-  ([size, qty]) => (
-    <button
-      key={size}
-      type="button"
-      disabled={qty <= 0 || selected}
-      onClick={() =>
-        setSelectedSizes((prev) => ({
-          ...prev,
-          [product._id]: size,
-        }))
-      }
-      className={`
+                          {/* SIZE SELECTOR */}
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {Object.entries(product.inventory || {}).map(
+                              ([size, qty]) => (
+                                <button
+                                  key={size}
+                                  type="button"
+                                  disabled={qty <= 0 || selected}
+                                  onClick={() =>
+                                    setSelectedSizes((prev) => ({
+                                      ...prev,
+                                      [product._id]: size,
+                                    }))
+                                  }
+                                  className={`
         relative
         h-8
         px-3
@@ -413,39 +430,36 @@ ${
         font-medium
         transition-all
 
-        ${
-          qty <= 0
-            ? "cursor-not-allowed border-neutral-200 text-neutral-400 line-through"
-            : ""
-        }
+        ${qty <= 0
+                                      ? "cursor-not-allowed border-neutral-200 text-neutral-400 line-through"
+                                      : ""
+                                    }
 
-        ${
-          selected
-            ? "pointer-events-none opacity-50"
-            : ""
-        }
+        ${selected
+                                      ? "pointer-events-none opacity-50"
+                                      : ""
+                                    }
 
-        ${
-          selectedSizes[product._id] === size
-            ? "bg-black text-white border-black"
-            : qty > 0
-            ? "border-neutral-300 hover:border-black"
-            : ""
-        }
+        ${selectedSizes[product._id] === size
+                                      ? "bg-black text-white border-black"
+                                      : qty > 0
+                                        ? "border-neutral-300 hover:border-black"
+                                        : ""
+                                    }
       `}
-    >
-      {size}
+                                >
+                                  {size}
 
-   
-    </button>
-  )
-)}
-</div>
 
-<button
-  disabled={!selectedSizes[product._id]}
-  onClick={() => toggleProduct(product)}
-  className={`
+                                </button>
+                              )
+                            )}
+                          </div>
+
+                          <button
+                            disabled={!selectedSizes[product._id]}
+                            onClick={() => toggleProduct(product)}
+                            className={`
     mt-5
 
     w-full
@@ -461,31 +475,30 @@ ${
 
     transition-all
 
-    ${
-      !selectedSizes[product._id]
-        ? "border-neutral-300 text-neutral-400 cursor-not-allowed"
-        : selected
-        ? "bg-black text-white border-black"
-        : "border-black hover:bg-black hover:text-white"
-    }
+    ${!selectedSizes[product._id]
+                                ? "border-neutral-300 text-neutral-400 cursor-not-allowed"
+                                : selected
+                                  ? "bg-black text-white border-black"
+                                  : "border-black hover:bg-black hover:text-white"
+                              }
   `}
->
- {!selectedSizes[product._id] ? (
-  "Select Size"
-) : selected ? (
-  <>
-    <span className="group-hover:hidden">
-      ✓ Added
-    </span>
+                          >
+                            {!selectedSizes[product._id] ? (
+                              "Select Size"
+                            ) : selected ? (
+                              <>
+                                <span className="group-hover:hidden">
+                                  ✓ Added
+                                </span>
 
-    <span className="hidden group-hover:inline">
-      Remove
-    </span>
-  </>
-) : (
-  "Add To Look"
-)}
-</button>
+                                <span className="hidden group-hover:inline">
+                                  Remove
+                                </span>
+                              </>
+                            ) : (
+                              "Add To Look"
+                            )}
+                          </button>
                         </div>
                       </div>
                     );
@@ -499,123 +512,99 @@ ${
 
           <aside
             className="
-              sticky
-              top-24
-              h-fit
-              rounded-[32px]
-              border
-              bg-white
-              p-6
-              shadow-xl
+         hidden
+lg:block
+sticky
+top-24
+h-fit
+rounded-[32px]
+border
+bg-white
+p-6
+shadow-xl
             "
           >
-         <div className="border-b pb-6">
-  <p className="uppercase tracking-[0.25em] text-xs text-neutral-500">
-    Styling Board
-  </p>
+            <div className="border-b pb-6">
+              <p className="uppercase tracking-[0.25em] text-xs text-neutral-500">
+                Styling Board
+              </p>
 
-  <h2 className="mt-3 text-3xl font-black">
-    Your Look
-  </h2>
+              <h2 className="mt-3 text-3xl font-black">
+                Your Look
+              </h2>
 
-  <p className="mt-2 text-neutral-500">
-    {selectedProducts.length}/3 selected pieces
-  </p>
-</div>
+              <p className="mt-2 text-neutral-500">
+                {selectedProducts.length}/3 selected pieces
+              </p>
+            </div>
 
             {/* Preview */}
 
- {/* Preview */}
+            {/* Preview */}
 
-<div className="mt-8 space-y-4">
-  {selectedProducts.map((product) => (
-    <div
-      key={product._id}
-      className="
+            <div className="mt-8 space-y-4">
+              {selectedProducts.map((product) => (
+                <div
+                  key={product._id}
+                  className="
         flex
         gap-4
 
         border-b
         pb-4
       "
-    >
-      <img
-        src={product.images?.[0]}
-        alt={product.title}
-        className="
+                >
+                  <img
+                    src={product.images?.[0]}
+                    alt={product.title}
+                    className="
           w-20
           h-24
 
           object-cover
         "
-      />
+                  />
 
-      <div className="flex-1">
-        <p className="font-medium">
-          {product.title}
-        </p>
+                  <div className="flex-1">
+                    <p className="font-medium">
+                      {product.title}
+                    </p>
 
-        <p className="text-sm text-neutral-500 mt-1">
-          Size: {selectedSizes[product._id]}
-        </p>
+                    <p className="text-sm text-neutral-500 mt-1">
+                      Size: {selectedSizes[product._id]}
+                    </p>
 
-        <p className="mt-2 font-semibold">
-          ₹{Number(product.price).toLocaleString()}
-        </p>
-      </div>
+                    <p className="mt-2 font-semibold">
+                      ₹{Number(product.price).toLocaleString()}
+                    </p>
+                  </div>
 
-      <button
-        onClick={() => {
-          setSelectedProducts((prev) =>
-            prev.filter(
-              (p) => p._id !== product._id
-            )
-          );
+                  <button
+                    onClick={() => {
+                      setSelectedProducts((prev) =>
+                        prev.filter(
+                          (p) => p._id !== product._id
+                        )
+                      );
 
-          setSelectedSizes((prev) => {
-            const copy = { ...prev };
-            delete copy[product._id];
-            return copy;
-          });
-        }}
-        className="
+                      setSelectedSizes((prev) => {
+                        const copy = { ...prev };
+                        delete copy[product._id];
+                        return copy;
+                      });
+                    }}
+                    className="
           text-neutral-400
           hover:text-black
         "
-      >
-       <CircleX className=" h-10 "/>
-      </button>
-    </div>
-  ))}
-</div>
-
-            {/* Selected */}
-
-            {/* <div className="space-y-4 mt-8 max-h-[300px] overflow-y-auto pr-2">
-              {selectedProducts.map(
-                (product) => (
-                  <div
-                    key={product._id}
-                    className="border-b pb-4"
                   >
-                    <div className="flex justify-between gap-3">
-                      <p className="font-medium">
-                        {
-                          product.title
-                        }
-                      </p>
+                    <CircleX className=" h-10 " />
+                  </button>
+                </div>
+              ))}
+            </div>
 
-                      <p>
-                        ₹
-                        {product.price}
-                      </p>
-                    </div>
-                  </div>
-                )
-              )}
-            </div> */}
-
-           <div className=" pt-8 space-y-4">
+            <div className=" pt-8 space-y-4">
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span>
@@ -649,7 +638,7 @@ ${
                 !selectedProducts.length
               }
               onClick={handleAddLook}
-            className="
+              className="
   w-full
 
   mt-8
@@ -676,6 +665,408 @@ ${
           </aside>
         </div>
       </div>
+      {/* MOBILE FLOATING BAR */}
+
+      {selectedProducts.length > 0 && (
+        <div
+          onClick={() => setShowLookDrawer(true)}
+          className="
+      lg:hidden
+
+      fixed
+
+      bottom-4
+
+      left-4
+
+      right-4
+
+      z-50
+
+      rounded-2xl
+
+      bg-black
+
+      text-white
+
+      shadow-2xl
+
+      px-4
+
+      py-3
+
+      flex
+
+      items-center
+
+      justify-between
+
+      cursor-pointer
+
+      active:scale-[.98]
+
+      transition
+    "
+        >
+          <div className="flex items-center gap-3">
+
+            <div className="flex -space-x-3">
+
+              {selectedProducts
+                .slice(0, 3)
+                .map((product) => (
+                  <img
+                    key={product._id}
+                    src={product.images?.[0]}
+                    className="
+                w-10
+                h-10
+
+                rounded-full
+
+                border-2
+
+                border-black
+
+                object-cover
+              "
+                  />
+                ))}
+
+            </div>
+
+            <div>
+
+              <p className="text-sm font-semibold">
+                {selectedProducts.length}/3 Selected
+              </p>
+
+              <p className="text-xs text-neutral-300">
+                Tap to view look
+              </p>
+
+            </div>
+
+          </div>
+
+          <div className="flex items-center gap-2">
+
+            <span className="font-bold">
+              ₹{total.toLocaleString()}
+            </span>
+
+            <ChevronRight size={20} />
+
+          </div>
+
+        </div>
+      )}
+      {/* BACKDROP */}
+
+      {showLookDrawer && (
+
+        <div
+
+          className="
+lg:hidden
+
+fixed
+
+inset-0
+
+bg-black/40
+
+backdrop-blur-sm
+
+z-[60]
+"
+
+          onClick={() => setShowLookDrawer(false)}
+
+        />
+
+      )}
+
+      <div
+className={`
+lg:hidden
+fixed
+inset-x-0
+bottom-0
+
+max-h-[65vh]
+
+overflow-hidden
+
+rounded-t-[32px]
+
+bg-white
+
+transition-transform
+
+duration-300
+
+shadow-[0_-15px_40px_rgba(0,0,0,.12)]
+
+${
+showLookDrawer
+? "translate-y-0"
+: "translate-y-full"
+}
+`}
+>
+
+<div className="flex h-[70vh] flex-col">
+
+    {/* Handle */}
+
+    <div className="mx-auto mb-5 h-1.5 w-12 rounded-full bg-neutral-300" />
+
+    {/* Header */}
+
+    <div className="flex items-center justify-between">
+
+      <div>
+
+        <p className="text-[11px] uppercase tracking-[0.25em] text-neutral-400">
+          Styling Board
+        </p>
+
+        <h2 className="mt-1 text-3xl font-black">
+          Your Look
+        </h2>
+
+        <p className="mt-1 text-sm text-neutral-500">
+          {selectedProducts.length}/3 selected
+        </p>
+
+      </div>
+
+      <button
+        onClick={() => setShowLookDrawer(false)}
+        className="
+          h-10
+          w-10
+          rounded-full
+          bg-neutral-100
+          flex
+          items-center
+          justify-center
+        "
+      >
+        <X size={20}/>
+      </button>
+
+    </div>
+
+    {/* Products */}
+
+<div className="mt-5 flex-1 overflow-y-auto px-5 space-y-3">
+
+      {selectedProducts.map((product) => (
+
+        <div
+          key={product._id}
+          className="
+            rounded-3xl
+            border
+            border-neutral-200
+            bg-white
+            p-3
+            shadow-sm
+          "
+        >
+
+          <div className="flex gap-4">
+
+            <img
+              src={product.images?.[0]}
+              className="
+                h-20
+                w-16
+                rounded-2xl
+                object-cover
+              "
+            />
+
+            <div className="flex flex-1 flex-col">
+
+              <div className="flex justify-between">
+
+                <div>
+
+                  <h3 className="font-semibold leading-5">
+                    {product.title}
+                  </h3>
+
+                  <p className="mt-2 text-sm text-neutral-500">
+                    Size : {selectedSizes[product._id]}
+                  </p>
+
+                </div>
+
+                <button
+                  onClick={() =>
+                    removeProduct(product._id)
+                  }
+                  className="
+                    h-9
+                    w-9
+                    rounded-full
+                    bg-neutral-100
+                    flex
+                    items-center
+                    justify-center
+                  "
+                >
+                  <CircleX size={18}/>
+                </button>
+
+              </div>
+
+              <p className="mt-4 text-base font-bold">
+                ₹{Number(product.price).toLocaleString()}
+              </p>
+
+            </div>
+
+          </div>
+
+          {/* Gallery */}
+
+          <div className="mt-4 flex gap-2">
+
+            {product.images
+              ?.slice(0,4)
+              .map((img,index)=>(
+                <img
+                  key={index}
+                  src={img}
+                  className="
+                   h-9 w-9
+                    rounded-xl
+                    object-cover
+                    border
+                  "
+                />
+            ))}
+
+          </div>
+
+        </div>
+
+      ))}
+
+    </div>
+
+    {/* Add another */}
+
+    {selectedProducts.length < 3 && (
+
+      <button
+        onClick={() =>
+          setShowLookDrawer(false)
+        }
+        className="
+          mt-3
+          w-full
+          rounded-2xl
+          border-2
+          border-dashed
+          border-violet-300
+          py-4
+          text-violet-600
+          font-medium
+        "
+      >
+        + Add Another Item ({3-selectedProducts.length} Left)
+      </button>
+
+    )}
+
+    {/* Totals */}
+
+    <div
+      className="
+        mt-5
+        rounded-3xl
+        bg-neutral-50
+        p-5
+      "
+    >
+
+      <div className="flex justify-between">
+
+        <span className="text-neutral-600">
+          Subtotal
+        </span>
+
+        <span>
+          ₹{subtotal.toLocaleString()}
+        </span>
+
+      </div>
+
+      <div className="mt-3 flex justify-between">
+
+        <span className="text-emerald-600 font-medium">
+          Bundle Saving (10%)
+        </span>
+
+        <span className="font-medium text-emerald-600">
+          -₹{discount.toLocaleString()}
+        </span>
+
+      </div>
+
+      <div className="my-5 border-t"/>
+
+      <div className="flex justify-between">
+
+        <span className="text-2xl font-black">
+          Total
+        </span>
+
+        <span className="text-3xl font-black">
+          ₹{total.toLocaleString()}
+        </span>
+
+      </div>
+
+    </div>
+
+    {/* CTA */}
+
+    <button
+      onClick={handleAddLook}
+      disabled={!selectedProducts.length}
+      className="
+        mt-5
+        w-full
+        rounded-2xl
+        bg-gradient-to-r
+        from-violet-700
+        to-purple-600
+        py-4
+        font-semibold
+        uppercase
+        tracking-wider
+        text-white
+        shadow-lg
+        disabled:opacity-40
+      "
+    >
+      ADD LOOK TO CART
+    </button>
+
+  </div>
+
+</div>
+
+
+
+
+
     </div>
   );
 };
