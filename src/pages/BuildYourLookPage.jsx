@@ -667,48 +667,37 @@ shadow-xl
       </div>
       {/* MOBILE FLOATING BAR */}
 
-      {selectedProducts.length > 0 && (
-        <div
-          onClick={() => setShowLookDrawer(true)}
-          className="
-      lg:hidden
 
-      fixed
 
-      bottom-4
+{selectedProducts.length > 0 && (
+  <>
+    {/* Floating Bar */}
+    {!showLookDrawer && (
+      <div
+        onClick={() => setShowLookDrawer(true)}
+        className="
+          lg:hidden
+          fixed
+          bottom-4
+          left-4
+          right-4
+          z-[60]
+          rounded-3xl
+          bg-black
+          text-white
+          shadow-[0_20px_50px_rgba(0,0,0,.35)]
+          px-5
+          py-4
+          active:scale-95
+          transition-all
+          duration-300
+        "
+      >
+        <div className="flex items-center justify-between">
 
-      left-4
+          {/* Left */}
 
-      right-4
-
-      z-50
-
-      rounded-2xl
-
-      bg-black
-
-      text-white
-
-      shadow-2xl
-
-      px-4
-
-      py-3
-
-      flex
-
-      items-center
-
-      justify-between
-
-      cursor-pointer
-
-      active:scale-[.98]
-
-      transition
-    "
-        >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
 
             <div className="flex -space-x-3">
 
@@ -718,18 +707,15 @@ shadow-xl
                   <img
                     key={product._id}
                     src={product.images?.[0]}
+                    alt=""
                     className="
-                w-10
-                h-10
-
-                rounded-full
-
-                border-2
-
-                border-black
-
-                object-cover
-              "
+                      h-11
+                      w-11
+                      rounded-xl
+                      border-2
+                      border-black
+                      object-cover
+                    "
                   />
                 ))}
 
@@ -737,246 +723,292 @@ shadow-xl
 
             <div>
 
-              <p className="text-sm font-semibold">
-                {selectedProducts.length}/3 Selected
-              </p>
+              <h4 className="font-semibold">
+                {selectedProducts.length} Item
+                {selectedProducts.length > 1 && "s"}
+              </h4>
 
-              <p className="text-xs text-neutral-300">
-                Tap to view look
+              <p className="text-xs text-lime-400">
+                Save ₹{discount.toLocaleString()}
               </p>
 
             </div>
 
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Right */}
 
-            <span className="font-bold">
-              ₹{total.toLocaleString()}
-            </span>
+   <div className="flex items-center gap-2">
 
-            <ChevronRight size={20} />
+  <span className="text-xl font-bold">
+    ₹{total.toLocaleString()}
+  </span>
+
+  <ChevronRight
+    size={18}
+    className="text-lime-400"
+  />
+
+</div>
+
+        </div>
+      </div>
+    )}
+
+    {/* Backdrop */}
+
+    {showLookDrawer && (
+      <div
+        onClick={() => setShowLookDrawer(false)}
+        className="
+          lg:hidden
+          fixed
+          inset-0
+          z-[65]
+          bg-black/40
+          backdrop-blur-[6px]
+        "
+      />
+    )}
+
+    {/* Drawer */}
+
+    <div
+      className={`
+        lg:hidden
+        fixed
+        inset-x-0
+        bottom-0
+        z-[70]
+
+        h-[82vh]
+
+        rounded-t-[34px]
+
+        bg-[#fafafa]
+
+        shadow-[0_-15px_40px_rgba(0,0,0,.18)]
+
+        transition-all
+        duration-300
+
+        ${
+          showLookDrawer
+            ? "translate-y-0"
+            : "translate-y-full"
+        }
+      `}
+    >
+
+      <div className="flex h-full flex-col">
+
+        {/* Handle */}
+
+        <div className="pt-3">
+
+          <div className="mx-auto h-1.5 w-12 rounded-full bg-neutral-300"/>
+
+        </div>
+
+        {/* Header */}
+
+        <div className="px-5 pt-5 pb-4 border-b bg-white">
+
+          <div className="flex items-center justify-between">
+
+            <div>
+
+              <p className="text-[11px] uppercase tracking-[0.3em] text-neutral-400">
+                YOUR LOOK
+              </p>
+
+              <h2 className="mt-1 text-3xl font-black">
+                Styling Board
+              </h2>
+
+              <p className="mt-1 text-sm text-lime-600 font-medium">
+                {selectedProducts.length}/3 Selected
+              </p>
+
+            </div>
+
+            <button
+              onClick={() =>
+                setShowLookDrawer(false)
+              }
+              className="
+                h-10
+                w-10
+                rounded-full
+                bg-neutral-100
+                flex
+                items-center
+                justify-center
+              "
+            >
+              <X size={20}/>
+            </button>
 
           </div>
 
         </div>
-      )}
-      {/* BACKDROP */}
 
-      {showLookDrawer && (
+        {/* ========= PART 2 STARTS FROM HERE ========= */}
 
-        <div
+        <div className="flex-1 overflow-y-auto px-5 py-5">
 
-          className="
-lg:hidden
-
-fixed
-
-inset-0
-
-bg-black/40
-
-backdrop-blur-sm
-
-z-[60]
-"
-
-          onClick={() => setShowLookDrawer(false)}
-
-        />
-
-      )}
-
+{selectedProducts.length === 0 ? (
+  <div className="flex h-full items-center justify-center text-neutral-400">
+    No products selected
+  </div>
+) : (
+  <div className="space-y-4">
+    {selectedProducts.map((product) => (
       <div
-className={`
-lg:hidden
-fixed
-inset-x-0
-bottom-0
-
-max-h-[65vh]
-
-overflow-hidden
-
-rounded-t-[32px]
-
-bg-white
-
-transition-transform
-
-duration-300
-
-shadow-[0_-15px_40px_rgba(0,0,0,.12)]
-
-${
-showLookDrawer
-? "translate-y-0"
-: "translate-y-full"
-}
-`}
->
-
-<div className="flex h-[70vh] flex-col">
-
-    {/* Handle */}
-
-    <div className="mx-auto mb-5 h-1.5 w-12 rounded-full bg-neutral-300" />
-
-    {/* Header */}
-
-    <div className="flex items-center justify-between">
-
-      <div>
-
-        <p className="text-[11px] uppercase tracking-[0.25em] text-neutral-400">
-          Styling Board
-        </p>
-
-        <h2 className="mt-1 text-3xl font-black">
-          Your Look
-        </h2>
-
-        <p className="mt-1 text-sm text-neutral-500">
-          {selectedProducts.length}/3 selected
-        </p>
-
-      </div>
-
-      <button
-        onClick={() => setShowLookDrawer(false)}
+        key={product._id}
         className="
-          h-10
-          w-10
-          rounded-full
-          bg-neutral-100
-          flex
-          items-center
-          justify-center
+          rounded-3xl
+          bg-white
+          border
+          border-neutral-200
+          p-3
+          shadow-sm
         "
       >
-        <X size={20}/>
-      </button>
+        <div className="flex gap-3">
 
-    </div>
+          {/* Image */}
 
-    {/* Products */}
+          <img
+            src={product.images?.[0]}
+            alt={product.title}
+            className="
+              h-24
+              w-20
+              rounded-2xl
+              object-cover
+            "
+          />
 
-<div className="mt-5 flex-1 overflow-y-auto px-5 space-y-3">
+          {/* Details */}
 
-      {selectedProducts.map((product) => (
+          <div className="flex flex-1 flex-col justify-between">
 
-        <div
-          key={product._id}
-          className="
-            rounded-3xl
-            border
-            border-neutral-200
-            bg-white
-            p-3
-            shadow-sm
-          "
-        >
+            <div className="flex justify-between">
 
-          <div className="flex gap-4">
+              <div>
 
-            <img
-              src={product.images?.[0]}
-              className="
-                h-20
-                w-16
-                rounded-2xl
-                object-cover
-              "
-            />
+                <h3 className="font-semibold text-[15px] leading-5">
+                  {product.title}
+                </h3>
 
-            <div className="flex flex-1 flex-col">
-
-              <div className="flex justify-between">
-
-                <div>
-
-                  <h3 className="font-semibold leading-5">
-                    {product.title}
-                  </h3>
-
-                  <p className="mt-2 text-sm text-neutral-500">
-                    Size : {selectedSizes[product._id]}
-                  </p>
-
-                </div>
-
-                <button
-                  onClick={() =>
-                    removeProduct(product._id)
-                  }
-                  className="
-                    h-9
-                    w-9
-                    rounded-full
-                    bg-neutral-100
-                    flex
-                    items-center
-                    justify-center
-                  "
-                >
-                  <CircleX size={18}/>
-                </button>
+                <p className="mt-2 text-sm text-neutral-500">
+                  Size {selectedSizes[product._id]}
+                </p>
 
               </div>
 
-              <p className="mt-4 text-base font-bold">
+              <button
+                onClick={() =>
+                  removeProduct(product._id)
+                }
+                className="
+                  h-9
+                  w-9
+                  rounded-full
+                  bg-neutral-100
+                  flex
+                  items-center
+                  justify-center
+                "
+              >
+                <CircleX size={18} />
+              </button>
+
+            </div>
+
+            <div className="mt-3 flex items-center justify-between">
+
+              <p className="text-lg font-bold">
                 ₹{Number(product.price).toLocaleString()}
               </p>
+
+              <span className="rounded-full bg-lime-100 px-2 py-1 text-[11px] font-semibold text-lime-700">
+                Added
+              </span>
 
             </div>
 
           </div>
 
-          {/* Gallery */}
+        </div>
+
+        {/* Gallery */}
+
+        {product.images?.length > 1 && (
 
           <div className="mt-4 flex gap-2">
 
             {product.images
-              ?.slice(0,4)
+              .slice(0,4)
               .map((img,index)=>(
                 <img
                   key={index}
                   src={img}
                   className="
-                   h-9 w-9
+                    h-10
+                    w-10
                     rounded-xl
                     object-cover
                     border
+                    border-neutral-200
                   "
                 />
             ))}
 
+            {product.images.length > 4 && (
+              <div
+                className="
+                  h-10
+                  w-10
+                  rounded-xl
+                  bg-neutral-100
+                  flex
+                  items-center
+                  justify-center
+                  text-xs
+                  font-semibold
+                "
+              >
+                +{product.images.length-4}
+              </div>
+            )}
+
           </div>
 
-        </div>
+        )}
 
-      ))}
+      </div>
+    ))}
 
-    </div>
-
-    {/* Add another */}
+    {/* Add More */}
 
     {selectedProducts.length < 3 && (
 
       <button
-        onClick={() =>
-          setShowLookDrawer(false)
-        }
+        onClick={() => setShowLookDrawer(false)}
         className="
-          mt-3
           w-full
           rounded-2xl
           border-2
           border-dashed
-          border-violet-300
+          border-lime-400
+          bg-lime-50
           py-4
-          text-violet-600
-          font-medium
+          font-semibold
+          text-black
+          transition
+          hover:bg-lime-100
         "
       >
         + Add Another Item ({3-selectedProducts.length} Left)
@@ -984,85 +1016,112 @@ showLookDrawer
 
     )}
 
-    {/* Totals */}
-
-    <div
-      className="
-        mt-5
-        rounded-3xl
-        bg-neutral-50
-        p-5
-      "
-    >
-
-      <div className="flex justify-between">
-
-        <span className="text-neutral-600">
-          Subtotal
-        </span>
-
-        <span>
-          ₹{subtotal.toLocaleString()}
-        </span>
-
-      </div>
-
-      <div className="mt-3 flex justify-between">
-
-        <span className="text-emerald-600 font-medium">
-          Bundle Saving (10%)
-        </span>
-
-        <span className="font-medium text-emerald-600">
-          -₹{discount.toLocaleString()}
-        </span>
-
-      </div>
-
-      <div className="my-5 border-t"/>
-
-      <div className="flex justify-between">
-
-        <span className="text-2xl font-black">
-          Total
-        </span>
-
-        <span className="text-3xl font-black">
-          ₹{total.toLocaleString()}
-        </span>
-
-      </div>
-
-    </div>
-
-    {/* CTA */}
-
-    <button
-      onClick={handleAddLook}
-      disabled={!selectedProducts.length}
-      className="
-        mt-5
-        w-full
-        rounded-2xl
-        bg-gradient-to-r
-        from-violet-700
-        to-purple-600
-        py-4
-        font-semibold
-        uppercase
-        tracking-wider
-        text-white
-        shadow-lg
-        disabled:opacity-40
-      "
-    >
-      ADD LOOK TO CART
-    </button>
-
   </div>
+)}
 
 </div>
 
+{/* ---------- Sticky Footer ---------- */}
+
+<div
+  className="
+    border-t
+    bg-white
+    px-5
+    pt-4
+    pb-5
+    shadow-[0_-8px_30px_rgba(0,0,0,.05)]
+  "
+>
+
+  <div className="rounded-3xl bg-neutral-50 p-2">
+
+    <div className="flex justify-between text-sm">
+
+      <span className="text-neutral-500">
+        Subtotal
+      </span>
+
+      <span className="font-medium">
+        ₹{subtotal.toLocaleString()}
+      </span>
+
+    </div>
+
+    <div className="mt-3 flex justify-between text-sm">
+
+      <span className="font-medium text-lime-600">
+        Bundle Saving
+      </span>
+
+      <span className="font-bold text-lime-600">
+        -₹{discount.toLocaleString()}
+      </span>
+
+    </div>
+
+    <div className="my-2 border-t"/>
+
+    <div className="flex justify-between">
+
+      <span className="text-xl font-black">
+        Total
+      </span>
+
+      <span className="text-2xl font-black">
+        ₹{total.toLocaleString()}
+      </span>
+
+    </div>
+
+  </div>
+
+  <button
+    onClick={handleAddLook}
+    disabled={!selectedProducts.length}
+    className="
+      mt-4
+      flex
+      w-full
+      items-center
+      justify-center
+      gap-2
+      rounded-2xl
+      bg-black
+      py-4
+      text-sm
+      font-semibold
+      uppercase
+      tracking-[0.2em]
+      text-white
+      transition
+      hover:bg-neutral-900
+      disabled:opacity-40
+    "
+  >
+    ADD LOOK TO CART
+
+    <ChevronRight
+      size={18}
+      className="text-lime-400"
+    />
+
+  </button>
+
+</div>
+
+{/* End Sticky Footer */}
+
+</div>
+
+{/* End Drawer */}
+
+</div>
+
+
+
+  </>
+)}
 
 
 
