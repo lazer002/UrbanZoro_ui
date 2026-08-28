@@ -288,10 +288,10 @@ export default function ProductList() {
           tag.toLowerCase().includes(query)
         );
 
-      const matchesCategory =
-        categoryFilter === "all" ||
-        String(product.category?._id || product.category) ===
-          String(categoryFilter);
+   const matchesCategory =
+  categoryFilter === "all" ||
+  String(product.category).toLowerCase() ===
+    String(categoryFilter).toLowerCase();
 
       const available =
         getAvailableStock(inventory);
@@ -591,31 +591,29 @@ const sizes =
               />
             </div>
 
-            <Select
-              value={categoryFilter}
-              onValueChange={setCategoryFilter}
-            >
-              <SelectTrigger className="border border-gray-200">
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
+         <Select
+  value={categoryFilter}
+  onValueChange={setCategoryFilter}
+>
+  <SelectTrigger className="border border-gray-200">
+    <SelectValue placeholder="Category" />
+  </SelectTrigger>
 
-              <SelectContent>
-                <SelectItem value="all">
-                  All Categories
-                </SelectItem>
+  <SelectContent>
+    <SelectItem value="all">
+      All Categories
+    </SelectItem>
 
-                {categoryOptions.map(
-                  (category) => (
-                    <SelectItem
-                      key={category._id}
-                      value={category.name}
-                    >
-                      {category.name}
-                    </SelectItem>
-                  )
-                )}
-              </SelectContent>
-            </Select>
+{categoryOptions.map((category) => (
+  <SelectItem
+    key={category._id}
+    value={category.slug}
+  >
+    {category.name}
+  </SelectItem>
+))}
+  </SelectContent>
+</Select>
 
             <Select
               value={statusFilter}
@@ -757,8 +755,7 @@ const sizes =
                         getDiscount(product);
 
                       const categoryName =
-                        product.category ||
-                        "—";
+                      product.category || "—";
 
                       const low =
                         inventory?.trackInventory &&
