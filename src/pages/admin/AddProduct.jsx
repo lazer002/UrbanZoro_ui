@@ -55,6 +55,7 @@ const getSizeOptions = (category) => {
 const INITIAL_FORM = {
   title: "",
   description: "",
+  details: "",
   price: "",
   oldPrice: "",
   category: "",
@@ -70,6 +71,7 @@ const INITIAL_FORM = {
 export default function AddProduct() {
   const fileInputRef = useRef(null);
   const descriptionRef = useRef(null);
+const detailsRef = useRef(null);
 
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState(INITIAL_FORM);
@@ -79,6 +81,8 @@ export default function AddProduct() {
   const [msg, setMsg] = useState("");
   const [descriptionMode, setDescriptionMode] =
     useState("html");
+const [detailsMode, setDetailsMode] =
+  useState("html");
 
   const updateForm = (key, value) => {
     setForm((prev) => ({
@@ -151,7 +155,41 @@ export default function AddProduct() {
       );
     });
   };
+const insertDetailsHtml = (before, after) => {
+  const textarea = detailsRef.current;
 
+  if (!textarea) return;
+
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+
+  const selected =
+    form.details.slice(start, end);
+
+  const value =
+    form.details.slice(0, start) +
+    before +
+    selected +
+    after +
+    form.details.slice(end);
+
+  updateForm("details", value);
+
+  requestAnimationFrame(() => {
+    textarea.focus();
+
+    const cursor =
+      start +
+      before.length +
+      selected.length +
+      after.length;
+
+    textarea.setSelectionRange(
+      cursor,
+      cursor
+    );
+  });
+};
   const insertLink = () => {
     const url = window.prompt("Enter URL");
 
@@ -159,7 +197,18 @@ export default function AddProduct() {
 
     insertHtml(`<a href="${url}">`, "</a>");
   };
+const insertDetailsLink = () => {
+  const url = window.prompt(
+    "Enter URL"
+  );
 
+  if (!url) return;
+
+  insertDetailsHtml(
+    `<a href="${url}" target="_blank" rel="noopener noreferrer">`,
+    "</a>"
+  );
+};
   const insertCode = () => {
     insertHtml("<code>", "</code>");
   };
@@ -220,6 +269,7 @@ export default function AddProduct() {
       const payload = {
         title: form.title.trim(),
         description: form.description,
+        details: form.details?.trim() || "",
 
         price: Number(form.price),
 
@@ -403,8 +453,8 @@ export default function AddProduct() {
 
             <div className="p-5">
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>
+                <div className="space-y-2 border-b">
+                  <Label className="font-bold">
                     Product Title
                   </Label>
 
@@ -422,7 +472,7 @@ export default function AddProduct() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>
+                   <Label className="font-bold">
                     Category
                   </Label>
 
@@ -457,7 +507,7 @@ export default function AddProduct() {
                 {/* DESCRIPTION */}
                 <div className="space-y-2 md:col-span-2">
                   <div className="flex items-center justify-between">
-                    <Label>
+                     <Label className="font-bold">
                       Description
                     </Label>
 
@@ -605,8 +655,216 @@ export default function AddProduct() {
                   )}
                 </div>
 
+{/* DETAILS */}
+<div className="space-y-2 md:col-span-2">
+  <div className="flex items-center justify-between">
+     <Label className="font-bold">Product Details</Label>
+
+    <div className="flex rounded-md border bg-gray-50 p-0.5">
+      <button
+        type="button"
+        onClick={() =>
+          setDetailsMode("html")
+        }
+        className={`rounded px-2.5 py-1 text-xs font-medium ${
+          detailsMode === "html"
+            ? "bg-black text-white"
+            : "text-gray-600"
+        }`}
+      >
+        HTML
+      </button>
+
+      <button
+        type="button"
+        onClick={() =>
+          setDetailsMode("normal")
+        }
+        className={`rounded px-2.5 py-1 text-xs font-medium ${
+          detailsMode === "normal"
+            ? "bg-black text-white"
+            : "text-gray-600"
+        }`}
+      >
+        Normal
+      </button>
+    </div>
+  </div>
+
+  {detailsMode === "html" ? (
+    <div className="overflow-hidden rounded-lg border">
+      <div className="flex flex-wrap items-center gap-1 border-b bg-gray-50 p-1.5">
+        <button
+          type="button"
+          onClick={() =>
+            insertDetailsHtml(
+              "<strong>",
+              "</strong>"
+            )
+          }
+          className="rounded p-1.5 hover:bg-gray-200"
+        >
+          <Bold className="h-4 w-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            insertDetailsHtml(
+              "<em>",
+              "</em>"
+            )
+          }
+          className="rounded p-1.5 hover:bg-gray-200"
+        >
+          <Italic className="h-4 w-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            insertDetailsHtml(
+              "<h2>",
+              "</h2>"
+            )
+          }
+          className="rounded px-2 py-1 text-xs font-bold hover:bg-gray-200"
+        >
+          H2
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            insertDetailsHtml(
+              "<h3>",
+              "</h3>"
+            )
+          }
+          className="rounded px-2 py-1 text-xs font-bold hover:bg-gray-200"
+        >
+          H3
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            insertDetailsHtml(
+              "<ul>\n  <li>",
+              "</li>\n</ul>"
+            )
+          }
+          className="rounded p-1.5 hover:bg-gray-200"
+        >
+          <List className="h-4 w-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            insertDetailsHtml(
+              "<ol>\n  <li>",
+              "</li>\n</ol>"
+            )
+          }
+          className="rounded p-1.5 hover:bg-gray-200"
+        >
+          <ListOrdered className="h-4 w-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            insertDetailsHtml(
+              "<p>",
+              "</p>"
+            )
+          }
+          className="rounded px-2 py-1 text-xs font-medium hover:bg-gray-200"
+        >
+          P
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            insertDetailsHtml(
+              "<blockquote>",
+              "</blockquote>"
+            )
+          }
+          className="rounded px-2 py-1 text-xs hover:bg-gray-200"
+        >
+          Quote
+        </button>
+
+        <button
+          type="button"
+          onClick={insertDetailsLink}
+          className="rounded p-1.5 hover:bg-gray-200"
+        >
+          <Link className="h-4 w-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            insertDetailsHtml(
+              "<hr />",
+              ""
+            )
+          }
+          className="rounded px-2 py-1 text-xs hover:bg-gray-200"
+        >
+          HR
+        </button>
+      </div>
+
+      <Textarea
+        ref={detailsRef}
+        rows={8}
+        value={form.details}
+        onChange={(e) =>
+          updateForm(
+            "details",
+            e.target.value
+          )
+        }
+        placeholder="<p>Product details...</p>"
+        className="
+          min-h-[180px]
+          resize-y
+          rounded-none
+          border-0
+          font-mono
+          text-sm
+          shadow-none
+          focus-visible:ring-0
+        "
+      />
+
+      <div className="border-t bg-gray-50 px-3 py-1.5 text-[11px] text-gray-500">
+        HTML supported
+      </div>
+    </div>
+  ) : (
+    <Textarea
+      rows={8}
+      value={form.details}
+      onChange={(e) =>
+        updateForm(
+          "details",
+          e.target.value
+        )
+      }
+      placeholder="Write product details..."
+      className="min-h-[180px] resize-y"
+    />
+  )}
+</div>
+
                 <div className="space-y-2 md:col-span-2">
-                  <Label>
+                   <Label className="font-bold">
                     Tags
                   </Label>
 
@@ -625,6 +883,8 @@ export default function AddProduct() {
                     Separate tags with commas
                   </p>
                 </div>
+
+
               </div>
             </div>
           </section>
@@ -732,8 +992,8 @@ export default function AddProduct() {
             </div>
 
             <div className="grid grid-cols-1 gap-4 p-5 md:grid-cols-3">
-              <div className="space-y-2">
-                <Label>
+              <div className="space-y-2 border-b">
+                 <Label className="font-bold">
                   Selling Price
                 </Label>
 
@@ -748,11 +1008,12 @@ export default function AddProduct() {
                       e.target.value
                     )
                   }
+                  placeholder="enter price"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>
+                 <Label className="font-bold border-b">
                   Old Price
                 </Label>
 
@@ -767,6 +1028,7 @@ export default function AddProduct() {
                       e.target.value
                     )
                   }
+                  placeholder="enter price"
                 />
               </div>
 
@@ -895,7 +1157,7 @@ export default function AddProduct() {
                   className="flex items-center justify-between gap-3 rounded-lg border p-3"
                 >
                   <div>
-                    <Label>
+                     <Label className="font-bold">
                       {item.label}
                     </Label>
 

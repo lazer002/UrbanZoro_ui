@@ -608,7 +608,7 @@ const sizes =
                   (category) => (
                     <SelectItem
                       key={category._id}
-                      value={category._id}
+                      value={category.name}
                     >
                       {category.name}
                     </SelectItem>
@@ -1252,7 +1252,7 @@ const sizes =
                       (category) => (
                         <SelectItem
                           key={category._id}
-                          value={category._id}
+                          value={category.name}
                         >
                           {category.name}
                         </SelectItem>
