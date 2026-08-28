@@ -101,6 +101,7 @@ export default function ProductList() {
           api.get("/categories"),
         ]);
 
+        console.log(productsRes.data?.items[0],'productsRes.data?.items')
       setProducts(
         productsRes.data?.items ||
           productsRes.data?.products ||
@@ -261,14 +262,8 @@ export default function ProductList() {
     return products.filter((product) => {
       const inventory = getInventory(product);
 
-      const categoryName =
-        product.category?.name ||
-        categories.find(
-          (c) =>
-            String(c._id) ===
-            String(product.category)
-        )?.name ||
-        "";
+  const categoryName =
+  product.category?.name || "—";
 
       const matchesSearch =
         !query ||
@@ -288,10 +283,11 @@ export default function ProductList() {
           tag.toLowerCase().includes(query)
         );
 
-   const matchesCategory =
+const matchesCategory =
   categoryFilter === "all" ||
-  String(product.category).toLowerCase() ===
-    String(categoryFilter).toLowerCase();
+  String(product.category?.slug || "")
+    .toLowerCase()
+    === String(categoryFilter).toLowerCase();
 
       const available =
         getAvailableStock(inventory);
@@ -366,10 +362,9 @@ export default function ProductList() {
       description: product.description || "",
       price: product.price ?? "",
       oldPrice: product.oldPrice ?? "",
-      category:
-        product.category?._id ||
-        product.category ||
-        "",
+  category:
+  product.category?.slug ||
+  "",
       published: Boolean(product.published),
       onSale: Boolean(product.onSale),
       isNewProduct: Boolean(
