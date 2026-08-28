@@ -357,21 +357,22 @@ const matchesCategory =
   function handleEdit(product) {
     setEditing(product);
 
-    setForm({
-      title: product.title || "",
-      description: product.description || "",
-      price: product.price ?? "",
-      oldPrice: product.oldPrice ?? "",
-  category:
-  product.category?.slug ||
-  "",
-      published: Boolean(product.published),
-      onSale: Boolean(product.onSale),
-      isNewProduct: Boolean(
-        product.isNewProduct
-      ),
-      featured: Boolean(product.featured),
-    });
+setForm({
+  title: product.title || "",
+  description: product.description || "",
+  details: product.details || "",
+  price: product.price ?? "",
+  oldPrice: product.oldPrice ?? "",
+  category: String(
+    product.category?._id ||
+    product.category ||
+    ""
+  ),
+  published: Boolean(product.published),
+  onSale: Boolean(product.onSale),
+  isNewProduct: Boolean(product.isNewProduct),
+  featured: Boolean(product.featured),
+});
 
     setOpen(true);
   }
@@ -405,6 +406,7 @@ const matchesCategory =
         {
           title: form.title.trim(),
           description: form.description,
+          details:form.details,
           price,
           oldPrice,
           discount,
@@ -1242,31 +1244,27 @@ const sizes =
           <h3 className="font-semibold">
             Category
           </h3>
+<Select
+  value={String(form.category?._id || form.category || "")}
+  onValueChange={(value) => {
+    updateForm("category", value);
+  }}
+>
+  <SelectTrigger>
+    <SelectValue placeholder="Select category" />
+  </SelectTrigger>
 
-          <Select
-            value={form.category || ""}
-            onValueChange={(value) =>
-              setForm({
-                ...form,
-                category: value,
-              })
-            }
-          >
-            <SelectTrigger className="border border-gray-300">
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-
-            <SelectContent>
-              {categories.map((category) => (
-                <SelectItem
-                  key={category._id}
-                  value={category.slug}
-                >
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+  <SelectContent>
+    {categories.map((category) => (
+      <SelectItem
+        key={category._id}
+        value={String(category._id)}
+      >
+        {category.name}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
         </section>
       </div>
 

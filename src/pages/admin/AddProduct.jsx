@@ -31,14 +31,19 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch.jsx";
 import api from "@/utils/config";
+import toast from "react-hot-toast";
 
 const SIZE_OPTIONS = {
   apparel: ["XS", "S", "M", "L", "XL", "XXL"],
   pants: ["28", "30", "32", "34", "36", "38", "40", "42"],
 };
 
-const getSizeOptions = (category) => {
-  const value = String(category || "").toLowerCase();
+const getSizeOptions = (categoryId, categories) => {
+  const category = categories.find(
+    (item) => String(item._id) === String(categoryId)
+  );
+
+  const value = String(category?.name || "").toLowerCase();
 
   if (
     value.includes("pant") ||
@@ -78,7 +83,6 @@ const detailsRef = useRef(null);
   const [files, setFiles] = useState([]);
   const [previews, setPreviews] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState("");
   const [descriptionMode, setDescriptionMode] =
     useState("html");
 const [detailsMode, setDetailsMode] =
@@ -213,135 +217,127 @@ const insertDetailsLink = () => {
     insertHtml("<code>", "</code>");
   };
 
-  async function submit(e) {
-    e?.preventDefault();
+async function submit(e) {
+  e?.preventDefault();
 
-    if (!form.title.trim()) {
-      setMsg("❌ Product title is required");
-      return;
-    }
+  if (!form.title.trim()) {
+    toast.error("Product title is required");
+    return;
+  }
 
-    if (!form.category) {
-      setMsg("❌ Please select a category");
-      return;
-    }
+  if (!form.category) {
+    toast.error("Please select a category");
+    return;
+  }
 
-    if (!form.price || Number(form.price) < 0) {
-      setMsg("❌ Enter a valid price");
-      return;
-    }
+  if (!form.price || Number(form.price) < 0) {
+    toast.error("Enter a valid price");
+    return;
+  }
 
-    if (!form.sizes.length) {
-      setMsg("❌ Select at least one size");
-      return;
-    }
+  if (!form.sizes.length) {
+    toast.error("Select at least one size");
+    return;
+  }
 
-    setSaving(true);
-    setMsg("");
+  setSaving(true);
 
-    try {
-      let uploadedUrls = [];
+  try {
+    let uploadedUrls = [];
 
-      if (files.length) {
-        const fd = new FormData();
+    if (files.length) {
+      const fd = new FormData();
 
-        files.forEach((file) => {
-          fd.append("files", file);
-        });
-
-        const { data } = await api.post(
-          "/admin/upload/images",
-          fd,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-            timeout: 60000,
-          }
-        );
-
-        uploadedUrls =
-          data.images?.map(
-            (image) => image.url
-          ) || [];
-      }
-
-      const payload = {
-        title: form.title.trim(),
-        description: form.description,
-        details: form.details?.trim() || "",
-
-        price: Number(form.price),
-
-        oldPrice:
-          form.oldPrice !== ""
-            ? Number(form.oldPrice)
-            : undefined,
-
-        images: uploadedUrls,
-
-        category: form.category,
-
-        sizes: form.sizes.map((size) => ({
-          name: size,
-          active: true,
-        })),
-
-        tags: form.tags
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter(Boolean),
-
-        active: Boolean(form.active),
-        published: Boolean(form.published),
-        isNewProduct: Boolean(form.isNewProduct),
-        onSale: Boolean(form.onSale),
-        featured: Boolean(form.featured),
-      };
+      files.forEach((file) => {
+        fd.append("files", file);
+      });
 
       const { data } = await api.post(
-        "/products",
-        payload
+        "/admin/upload/images",
+        fd,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          timeout: 60000,
+        }
       );
 
-      if (
-        !data?.success &&
-        data?.success !== undefined
-      ) {
-        throw new Error(
-          data?.message ||
-            "Failed to create product"
-        );
-      }
-
-      setMsg(
-        "✅ Product created successfully"
-      );
-
-      setForm(INITIAL_FORM);
-      setFiles([]);
-
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    } catch (error) {
-      console.error(
-        "create product:",
-        error
-      );
-
-      setMsg(
-        `❌ ${
-          error?.response?.data?.message ||
-          error?.response?.data?.error ||
-          error?.message ||
-          "Failed to create product"
-        }`
-      );
-    } finally {
-      setSaving(false);
+      uploadedUrls =
+        data.images?.map((image) => image.url) || [];
     }
+
+    const payload = {
+      title: form.title.trim(),
+      description: form.description,
+      details: form.details?.trim() || "",
+
+      price: Number(form.price),
+
+      oldPrice:
+        form.oldPrice !== ""
+          ? Number(form.oldPrice)
+          : undefined,
+
+      images: uploadedUrls,
+
+      // MongoDB category ObjectId
+      category: form.category,
+
+      sizes: form.sizes.map((size) => ({
+        name: size,
+        active: true,
+      })),
+
+      tags: form.tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean),
+
+      active: Boolean(form.active),
+      published: Boolean(form.published),
+      isNewProduct: Boolean(form.isNewProduct),
+      onSale: Boolean(form.onSale),
+      featured: Boolean(form.featured),
+    };
+
+    const { data } = await api.post(
+      "/products",
+      payload
+    );
+
+    if (
+      !data?.success &&
+      data?.success !== undefined
+    ) {
+      throw new Error(
+        data?.message ||
+          data?.error ||
+          "Failed to create product"
+      );
+    }
+
+    toast.success("Product created successfully");
+
+    setForm(INITIAL_FORM);
+    setFiles([]);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  } catch (error) {
+    console.error("create product:", error);
+
+    toast.error(
+      error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Failed to create product"
+    );
+  } finally {
+    setSaving(false);
   }
+}
 
   useEffect(() => {
     async function fetchCategories() {
@@ -381,9 +377,10 @@ const insertDetailsLink = () => {
     };
   }, [files]);
 
-  const sizeOptions = getSizeOptions(
-    form.category
-  );
+const sizeOptions = getSizeOptions(
+  form.category,
+  categories
+)
 
   return (
     <div className="w-full">
@@ -417,18 +414,7 @@ const insertDetailsLink = () => {
         </Button>
       </div>
 
-      {/* ERROR / SUCCESS */}
-      {msg && (
-        <div
-          className={`mb-5 rounded-lg border px-4 py-3 text-sm ${
-            msg.startsWith("✅")
-              ? "border-green-200 bg-green-50 text-green-700"
-              : "border-red-200 bg-red-50 text-red-700"
-          }`}
-        >
-          {msg}
-        </div>
-      )}
+
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         {/* LEFT */}
@@ -476,15 +462,18 @@ const insertDetailsLink = () => {
                     Category
                   </Label>
 
-                  <Select
-                    value={form.category}
-                    onValueChange={(value) =>
-                      updateForm(
-                        "category",
-                        value
-                      )
-                    }
-                  >
+               <Select
+  value={form.category}
+  onValueChange={(value) => {
+    updateForm("category", value);
+
+    setForm((prev) => ({
+      ...prev,
+      category: value,
+      sizes: [],
+    }));
+  }}
+>
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
@@ -494,7 +483,7 @@ const insertDetailsLink = () => {
                         (category) => (
                           <SelectItem
                             key={category._id}
-                            value={category.slug}
+                            value={category._id}
                           >
                             {category.name}
                           </SelectItem>
@@ -1210,7 +1199,7 @@ const insertDetailsLink = () => {
               onClick={() => {
                 setForm(INITIAL_FORM);
                 setFiles([]);
-                setMsg("");
+                
 
                 if (fileInputRef.current) {
                   fileInputRef.current.value =
