@@ -572,248 +572,244 @@ useEffect(() => {
               px-10 pt-10
             "
           >
-            <div className="flex gap-8 justify-center ">
-              {/* PROMO */}
-             <div
-className="
-  hidden xl:flex
-  relative overflow-hidden
-
-  flex-col justify-center items-center
-
-  bg-white
-  rounded-3xl
-
-  px-8
-
-  w-72 h-[36vh]
-
-  border border-gray-200
-  shadow-sm
-
-  transition-all duration-500
-  hover:shadow-xl
-  hover:-translate-y-1
-
-  group
-
-  animate-[promoFloat_6s_ease-in-out_infinite]
-"
->
-
-  {/* SUBTLE SPLASH GLOW */}
+           <div className="flex gap-8 px-6" data-lenis-prevent>
+  {/* PROMO */}
   <div
     className="
-      absolute inset-0
-      opacity-0
-      group-hover:opacity-100
-      transition-opacity duration-700
-      pointer-events-none
+      hidden xl:flex
+      relative shrink-0
+      w-[300px] h-[38vh]
+      overflow-hidden
+      rounded-[2rem]
+      bg-black
+      text-white
+      group
+      
     "
   >
+    {/* Background glow */}
     <div
       className="
-        absolute
-        -top-10 -left-10
-
-        w-40 h-40
+        absolute -top-24 -right-24
+        h-64 w-64
         rounded-full
-
-        bg-gray-200/40
+        bg-white/10
         blur-3xl
-
-        animate-pulse
+        transition-transform duration-700
+        group-hover:scale-125
       "
     />
 
     <div
       className="
-        absolute
-        bottom-0 right-0
-
-        w-32 h-32
+        absolute -bottom-24 -left-24
+        h-64 w-64
         rounded-full
-
-        bg-gray-300/30
+        bg-white/10
         blur-3xl
+        transition-transform duration-700
+        group-hover:scale-125
       "
     />
-  </div>
 
-  {/* CONTENT */}
-  <div className="relative z-10 flex flex-col items-center">
-
-    <h3
+    {/* Content */}
+    <div
       className="
-        text-3xl
-        font-black
-        mb-3
-        tracking-tight
-
-        transition-transform duration-500
-        group-hover:scale-[1.03]
+        relative z-10
+        flex h-full
+        flex-col
+        justify-between
+        p-8
       "
     >
-      🎉 20% OFF
-    </h3>
+      <div>
+        <span
+          className="
+            inline-flex
+            rounded-full
+            border border-white/20
+            bg-white/10
+            px-3 py-1.5
+            text-[10px]
+            font-semibold
+            uppercase
+            tracking-[0.2em]
+            backdrop-blur-md
+          "
+        >
+          Limited Offer
+        </span>
 
-    <p
-      className="
-        text-sm text-gray-500
-        text-center mb-6
-        leading-relaxed
-      "
-    >
-      Get 20% off your first
-      purchase in our app.
-    </p>
+        <h3
+          className="
+            mt-8
+            text-5xl
+            font-black
+            leading-[0.9]
+            tracking-[-0.04em]
+          "
+        >
+          20%
+          <br />
+          OFF
+        </h3>
 
-    <Link
-      to="/app-offer"
-      className="
-        relative overflow-hidden
+        <p className="mt-5 max-w-[210px] text-sm leading-relaxed text-white/60">
+          Your first order deserves something special.
+          Enjoy an exclusive discount when you shop with us.
+        </p>
+      </div>
 
-        bg-black text-white
-        rounded-full
-
-        px-6 py-3
-        text-sm font-semibold
-
-        transition-all duration-300
-
-        hover:bg-gray-800
-        hover:scale-[1.04]
-      "
-    >
-      <span className="relative z-10">
-        Shop Now
-      </span>
-
-      {/* BUTTON SHINE */}
-      <span
+      <Link
+        to="/app-offer"
         className="
-          absolute inset-0
-          -translate-x-full
-          group-hover:translate-x-full
-
-          bg-gradient-to-r
-          from-transparent
-          via-white/20
-          to-transparent
-
-          transition-transform duration-1000
+          flex
+          w-full
+          items-center
+          justify-between
+          rounded-full
+          bg-white
+          px-5 py-3.5
+          text-sm
+          font-semibold
+          text-black
+          transition-all duration-300
+          hover:scale-[1.03]
+          hover:bg-neutral-200
         "
-      />
-    </Link>
+      >
+        <span>Shop the offer</span>
 
+        <span
+          className="
+            flex h-8 w-8
+            items-center justify-center
+            rounded-full
+            bg-black
+            text-white
+            transition-transform duration-300
+            group-hover:translate-x-1
+          "
+        >
+          →
+        </span>
+      </Link>
+    </div>
   </div>
-</div>
 
-              {/* CATEGORIES */}
-              <div className="flex-1 overflow-x-auto justify-between">
+  {/* CATEGORIES */}
+  <div className="min-w-0 flex-1 overflow-x-auto">
+    <div className="flex min-w-max gap-5 pb-6">
+      {categories.map((category) => (
+        <Link
+          key={category._id}
+          to={`/products?category=${category.slug}`}
+          className="
+            group
+            relative
+            w-[260px]
+            shrink-0
+            overflow-hidden
+            rounded-[2rem]
+            bg-neutral-100
+            shadow-sm
+            transition-all
+            duration-500
+            hover:-translate-y-1
+            hover:shadow-2xl
+          "
+        >
+          {/* IMAGE */}
+          <div className="relative h-[350px] overflow-hidden">
+            <img
+              src={
+                category.photo ||
+                `https://via.placeholder.com/300x400?text=${encodeURIComponent(
+                  category.name
+                )}`
+              }
+              alt={category.name}
+              loading="lazy"
+              className="
+                h-full
+                w-full
+                object-cover
+                transition-transform
+                duration-700
+                ease-out
+                group-hover:scale-105
+              "
+            />
+
+            {/* Overlay */}
+            <div
+              className="
+                absolute inset-0
+                bg-gradient-to-t
+                from-black/80
+                via-black/10
+                to-transparent
+              "
+            />
+
+            {/* Top label */}
+            <div className="absolute left-5 top-5">
+              <span
+                className="
+                  rounded-full
+                  border border-white/30
+                  bg-black/20
+                  px-3 py-1.5
+                  text-[10px]
+                  font-semibold
+                  uppercase
+                  tracking-[0.2em]
+                  text-white
+                  backdrop-blur-md
+                "
+              >
+                Collection
+              </span>
+            </div>
+
+            {/* Bottom content */}
+            <div className="absolute bottom-0 left-0 right-0 p-5">
+              <div className="flex items-end justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="mb-1 text-[10px] uppercase tracking-[0.25em] text-white/60">
+                    Explore
+                  </p>
+
+                  <h4 className="truncate text-2xl font-bold tracking-tight text-white">
+                    {category.name}
+                  </h4>
+                </div>
+
                 <div
                   className="
-                    flex gap-6
-                    min-w-max
-                    pb-10
-                    px-6
-                    
+                    flex h-11 w-11
+                    shrink-0
+                    items-center justify-center
+                    rounded-full
+                    bg-white
+                    text-lg
+                    text-black
+                    transition-all
+                    duration-300
+                    group-hover:translate-x-1
+                    group-hover:scale-105
                   "
                 >
-                  {categories.map(
-                    (category) => (
-                      <Link
-                        key={category._id}
-                        to={`/products?category=${category.slug}`}
-                        className="
-                          w-64 flex-shrink-0
-                          bg-white
-                          rounded-3xl
-                          overflow-hidden
-                          border border-gray-100
-                          shadow-sm
-                          hover:shadow-2xl
-                          transition-all duration-500
-                          group
-                        "
-                      >
-                        {/* IMAGE */}
-                        <div
-                          className="
-                            h-[26vh]
-                            overflow-hidden
-                            bg-gray-100
-                          "
-                        >
-                          <img
-                            src={
-                              category.photo ||
-                              `https://via.placeholder.com/300x400?text=${encodeURIComponent(
-                                category.name
-                              )}`
-                            }
-                            alt={category.name}
-                            loading="lazy"
-                            className="
-                              w-full h-full
-                              object-cover
-                              transition-transform duration-700
-                              group-hover:scale-110
-                            "
-                          />
-                        </div>
-
-                        {/* CONTENT */}
-                        <div className="p-5">
-                          <div
-                            className="
-                              flex items-center
-                              justify-between
-                            "
-                          >
-                            <div>
-                              <p
-                                className="
-                                  text-xs uppercase
-                                  tracking-[0.25em]
-                                  text-gray-400
-                                  mb-1
-                                "
-                              >
-                                Category
-                              </p>
-
-                              <h4
-                                className="
-                                  text-lg font-bold
-                                  tracking-tight
-                                "
-                              >
-                                {category.name}
-                              </h4>
-                            </div>
-
-                            <div
-                              className="
-                                w-10 h-10
-                                rounded-full
-                                bg-black text-white
-                                flex items-center justify-center
-                                text-lg
-                                transition-transform duration-300
-                                group-hover:translate-x-1
-                              "
-                            >
-                              →
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    )
-                  )}
+                  →
                 </div>
               </div>
             </div>
+          </div>
+        </Link>
+      ))}
+    </div>
+  </div>
+</div>
           </div>
         </div>
       </div>

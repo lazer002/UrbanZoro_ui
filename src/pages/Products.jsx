@@ -239,21 +239,60 @@ export default function Products() {
         {products.map((p) => {
           // console.log("[ProductCard] render", { _id: p._id, isWished: wishlist.includes(String(p._id)), wishlistSample: wishlist.slice(0, 6) });
           const id = String(p._id);
+          const hasAvailableSize =
+  Array.isArray(p.sizes) &&
+  p.sizes.some((size) => {
+    const name =
+      typeof size === "string"
+        ? size
+        : size?.name;
+
+    if (!name) return false;
+
+    const qty = Number(
+      p.inventory?.[name] ??
+      p.inventory?.stock?.[name] ??
+      0
+    );
+
+    return (
+      (typeof size === "string" ||
+        size.active !== false) &&
+      qty > 0
+    );
+  });
+
+const soldOut =
+  !hasAvailableSize &&
+  (
+    p.isOutOfStock === true ||
+    p.inventory?.available <= 0
+  );
           return (
             <Link key={p.publicId} to={`/product/${p.publicId}`} className="cursor-pointer">
               <div className="bg-white transition border border-gray-100 overflow-hidden relative rounded-2xl">
                 <div className="relative w-full h-[50vh] overflow-hidden">
-                  <img
-                    src={p.images[0]}
-                    alt={p.title}
-                    className="w-full h-full object-cover transition-all duration-500 hover:opacity-0 rounded-xl"
-                  />
-                  {p.images[1] && (
-                    <img
-                      src={p.images[1]}
-                      alt={p.title + " hover"}
-                      className="w-full h-full object-cover absolute top-0 left-0 opacity-0 hover:opacity-100 transition-opacity duration-500 rounded-xl" />
-                  )}
+           <img
+  src={p.images[0]}
+  alt={p.title}
+  className={`w-full h-full object-cover transition-all duration-500 rounded-xl ${
+    soldOut 
+      ? "grayscale"
+      : ""
+  }`}
+/>
+
+{p.images[1] && (
+  <img
+    src={p.images[1]}
+    alt={p.title + " hover"}
+    className={`w-full h-full object-cover absolute top-0 left-0 opacity-0 hover:opacity-100 transition-opacity duration-500 rounded-xl ${
+     soldOut 
+        ? "grayscale"
+        : ""
+    }`}
+  />
+)}
                   {p.isNew && (
                     <span className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 uppercase">
                       NEW
@@ -311,39 +350,39 @@ export default function Products() {
 
                 <div className="p-3 flex flex-col gap-1">
 
-<div className="absolute top-3 left-3 z-20 flex flex-col items-start gap-2">
-  {(() => {
-    const hasAvailableSize =
-      Array.isArray(p.sizes) &&
-      p.sizes.some((size) => {
-        const name =
-          typeof size === "string"
-            ? size
-            : size?.name;
+                  <div className="absolute top-3 left-3 z-20 flex flex-col items-start gap-2">
+                    {(() => {
+                      const hasAvailableSize =
+                        Array.isArray(p.sizes) &&
+                        p.sizes.some((size) => {
+                          const name =
+                            typeof size === "string"
+                              ? size
+                              : size?.name;
 
-        if (!name) return false;
+                          if (!name) return false;
 
-        const qty = Number(
-          p.inventory?.[name] ??
-            p.inventory?.stock?.[name] ??
-            0
-        );
+                          const qty = Number(
+                            p.inventory?.[name] ??
+                            p.inventory?.stock?.[name] ??
+                            0
+                          );
 
-        return (
-          (typeof size === "string" ||
-            size.active !== false) &&
-          qty > 0
-        );
-      });
+                          return (
+                            (typeof size === "string" ||
+                              size.active !== false) &&
+                            qty > 0
+                          );
+                        });
 
-    const soldOut =
-      p.isOutOfStock === true &&
-      !hasAvailableSize;
+                      const soldOut =
+                        p.isOutOfStock === true &&
+                        !hasAvailableSize;
 
-    if (soldOut) {
-      return (
-        <div
-          className="
+                      if (soldOut) {
+                        return (
+                          <div
+                            className="
             bg-black/80
             backdrop-blur-md
             text-white
@@ -354,17 +393,17 @@ export default function Products() {
             px-3 py-2
             rounded-full
           "
-        >
-          Sold Out
-        </div>
-      );
-    }
+                          >
+                            Sold Out
+                          </div>
+                        );
+                      }
 
-    return (
-      <>
-        {p.onSale && (
-          <div
-            className="
+                      return (
+                        <>
+                          {p.onSale && (
+                            <div
+                              className="
               bg-black/80
               backdrop-blur-md
               text-white
@@ -375,14 +414,14 @@ export default function Products() {
               px-3 py-2
               rounded-full
             "
-          >
-            Sale
-          </div>
-        )}
+                            >
+                              Sale
+                            </div>
+                          )}
 
-        {p.isNewProduct && (
-          <div
-            className="
+                          {p.isNewProduct && (
+                            <div
+                              className="
               bg-black/80
               backdrop-blur-md
               text-white
@@ -393,14 +432,14 @@ export default function Products() {
               px-3 py-2
               rounded-full
             "
-          >
-            NEW
-          </div>
-        )}
-      </>
-    );
-  })()}
-</div>
+                            >
+                              NEW
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
 
 
                   <div className="flex items-center justify-between">
@@ -468,45 +507,43 @@ export default function Products() {
 
       {/* Filter Offcanvas */}
 
-<Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-  <DialogContent className="w-[calc(100%-32px)] max-w-md rounded-2xl p-0 overflow-hidden">
-    <DialogHeader className="px-6 pt-6 pb-4 border-b">
-      <DialogTitle className="text-xl font-semibold">
-        Select Size
-      </DialogTitle>
-      <p className="text-sm text-muted-foreground">
-        Choose your preferred size
-      </p>
-    </DialogHeader>
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="w-[calc(100%-32px)] max-w-md rounded-2xl p-0 overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b">
+            <DialogTitle className="text-xl font-semibold">
+              Select Size
+            </DialogTitle>
 
-{selectedProduct && (
-  <div className="px-6 py-5">
-    {selectedProduct.sizes?.length ? (
-      <>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {selectedProduct.sizes.map((size) => {
-            const name = size.name;
+          </DialogHeader>
 
-            const qty = Number(
-              selectedProduct.inventory?.[name] ??
-                selectedProduct.inventory?.stock?.[name] ??
-                0
-            );
+          {selectedProduct && (
+            <div className="px-6 py-5">
+              {selectedProduct.sizes?.length ? (
+                <>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {selectedProduct.sizes.map((size) => {
+                      const name = size.name;
 
-            const isAvailable =
-              size.active !== false && qty > 0;
+                      const qty = Number(
+                        selectedProduct.inventory?.[name] ??
+                        selectedProduct.inventory?.stock?.[name] ??
+                        0
+                      );
 
-            return (
-              <button
-                key={name}
-                type="button"
-                disabled={!isAvailable}
-                onClick={() => {
-                  if (isAvailable) {
-                    handleSelectSize(name);
-                  }
-                }}
-                className={`
+                      const isAvailable =
+                        size.active !== false && qty > 0;
+
+                      return (
+                        <button
+                          key={name}
+                          type="button"
+                          disabled={!isAvailable}
+                          onClick={() => {
+                            if (isAvailable) {
+                              handleSelectSize(name);
+                            }
+                          }}
+                          className={`
                   group
                   relative
                   min-h-[72px]
@@ -518,108 +555,104 @@ export default function Products() {
                   transition-all
                   duration-200
 
-                  ${
-                    isAvailable
-                      ? `
+                  ${isAvailable
+                              ? `
                         border-gray-200
                         bg-white
                         hover:border-black
                         hover:shadow-sm
                         active:scale-[0.98]
                       `
-                      : `
+                              : `
                         cursor-not-allowed
                         border-gray-100
                         bg-gray-50
                         text-gray-400
                       `
-                  }
+                            }
                 `}
-              >
-                <div className="flex items-center justify-between">
-                  <span
-                    className={`
+                        >
+                          <div className="flex items-center justify-between">
+                            <span
+                              className={`
                       text-base font-semibold
-                      ${
-                        isAvailable
-                          ? "text-gray-900"
-                          : "text-gray-400"
-                      }
+                      ${isAvailable
+                                  ? "text-gray-900"
+                                  : "text-gray-400"
+                                }
                     `}
-                  >
-                    {name}
-                  </span>
+                            >
+                              {name}
+                            </span>
 
-                  <span
-                    className={`
+                            <span
+                              className={`
                       h-2 w-2 rounded-full
-                      ${
-                        isAvailable
-                          ? "bg-green-500"
-                          : "bg-gray-300"
-                      }
+                      ${isAvailable
+                                  ? "bg-green-500"
+                                  : "bg-gray-300"
+                                }
                     `}
-                  />
-                </div>
+                            />
+                          </div>
 
-                <span
-                  className={`
+                          <span
+                            className={`
                     mt-1 block text-xs
-                    ${
-                      isAvailable
-                        ? "text-gray-500"
-                        : "text-gray-400"
-                    }
+                    ${isAvailable
+                                ? "text-gray-500"
+                                : "text-gray-400"
+                              }
                   `}
-                >
-                  {isAvailable
-                    ? qty <= 5
-                      ? `Only ${qty} left`
-                      : "Available"
-                    : "Out of stock"}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                          >
+                            {isAvailable
+                              ? qty <= 5
+                                ? `Only ${qty} left`
+                                : "Available"
+                              : "Out of stock"}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
 
-        {(() => {
-          const hasAvailableSize =
-            selectedProduct.sizes.some((size) => {
-              const qty = Number(
-                selectedProduct.inventory?.[size.name] ??
-                  selectedProduct.inventory?.stock?.[
-                    size.name
-                  ] ??
-                  0
-              );
+                  {(() => {
+                    const hasAvailableSize =
+                      selectedProduct.sizes.some((size) => {
+                        const qty = Number(
+                          selectedProduct.inventory?.[size.name] ??
+                          selectedProduct.inventory?.stock?.[
+                          size.name
+                          ] ??
+                          0
+                        );
 
-              return (
-                size.active !== false &&
-                qty > 0
-              );
-            });
+                        return (
+                          size.active !== false &&
+                          qty > 0
+                        );
+                      });
 
-          return !hasAvailableSize ? (
-            <div className="mt-5 rounded-xl border border-red-100 bg-red-50 px-4 py-3">
-              <p className="text-sm font-medium text-red-600">
-                This product is currently out of stock.
-              </p>
+                    return !hasAvailableSize ? (
+                      <div className="mt-5 rounded-xl border border-red-100 bg-red-50 px-4 py-3">
+                        <p className="text-sm font-medium text-red-600">
+                          This product is currently out of stock.
+                        </p>
+                      </div>
+                    ) : null;
+                  })()}
+                </>
+              ) : (
+                <div className="rounded-xl border border-gray-200 bg-gray-50 p-5 text-center">
+                  <p className="text-sm text-gray-500">
+                    No sizes available for this product.
+                  </p>
+                </div>
+              )}
             </div>
-          ) : null;
-        })()}
-      </>
-    ) : (
-      <div className="rounded-xl border border-gray-200 bg-gray-50 p-5 text-center">
-        <p className="text-sm text-gray-500">
-          No sizes available for this product.
-        </p>
-      </div>
-    )}
-  </div>
-)}
-  </DialogContent>
-</Dialog>
+          )}
+        </DialogContent>
+      </Dialog>
 
 
       {/* Overlay */}
