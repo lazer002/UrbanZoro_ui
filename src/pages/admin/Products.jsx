@@ -47,6 +47,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { useNavigate } from "react-router-dom";
 
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 
@@ -60,6 +61,7 @@ const EMPTY_STOCK = {
 };
 
 export default function ProductList() {
+  const navigate = useNavigate()
   const [products, setProducts] = useState([]);
   const [inventories, setInventories] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -402,7 +404,7 @@ setForm({
           : 0;
 
       await api.put(
-        `/products/${editing._id}`,
+        `/admin/products/${editing._id}`,
         {
           title: form.title.trim(),
           description: form.description,
@@ -467,7 +469,7 @@ setForm({
   async function confirmDelete() {
     try {
       await api.delete(
-        `/products/${deleteId}`
+        `/admin/products/${deleteId}`
       );
 
       setDeleteOpen(false);
@@ -488,6 +490,14 @@ const sizes =
       : size.name
   ) || [];
   const categoryOptions = categories;
+
+const openProduct = (product) => {
+  if (product?.publicId) {
+    navigate(`/admin/products/${product.publicId}`);
+  }
+};
+
+
 
   return (
     <div className="w-full space-y-6">
@@ -777,11 +787,15 @@ const sizes =
                       return (
                         <tr
                           key={product._id}
-                          className="border-b hover:bg-gray-50"
+                          onClick={() => openProduct(product)}
+                          className="border-b hover:bg-gray-50 "
                         >
                           {/* PRODUCT */}
 
-                          <td className="px-4 py-4">
+                         <td
+    className="px-4 py-4 cursor-pointer group"
+    onClick={() => openProduct(product)}
+  >
                             <div className="flex items-center gap-3">
                               <div className="h-14 w-14 rounded-lg bg-gray-100 overflow-hidden shrink-0">
                                 {product.images?.[0] ? (
@@ -1060,21 +1074,21 @@ const sizes =
                                 <Eye className="h-4 w-4" />
                               </Button>
 
-                              <Button
-                                size="icon"
-                                variant="outline"
-                                onClick={() =>
-                                  handleEdit(
-                                    product
-                                  )
-                                }
-                              >
+                           <Button
+  size="icon"
+  variant="outline"
+  onClick={(e) => {
+    e.stopPropagation();
+    handleEdit(product);
+  }}
+>
                                 <Pencil className="h-4 w-4" />
                               </Button>
 
                               <Button
                                 size="icon"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   setDeleteId(
                                     product._id
                                   );

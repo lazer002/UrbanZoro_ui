@@ -1,384 +1,431 @@
-// src/components/RecentlyViewed.jsx
-
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-const STORAGE_KEY = "recently_viewed_products";
+const STORAGE_KEY = "recently_viewed_items";
 const MAX_ITEMS = 8;
 
-export default function RecentlyViewed({ currentProduct }) {
+export default function RecentlyViewed({
+  currentProduct,
+  type = "product",
+}) {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
 
+  const isBundle = type === "bundle";
+
   useEffect(() => {
-    if (!currentProduct?._id) return;
+    if (
+      !currentProduct?.publicId &&
+      !currentProduct?._id
+    ) {
+      return;
+    }
 
-    const stored = JSON.parse(
-      localStorage.getItem(STORAGE_KEY) || "[]"
-    );
+    const currentId =
+      currentProduct.publicId ||
+      currentProduct._id;
 
-    const product = {
-      _id: currentProduct._id,
-      publicId: currentProduct.publicId,
-      title: currentProduct.title,
-      price: currentProduct.price,
-      oldPrice: currentProduct.oldPrice,
-      images: currentProduct.images || [],
-      onSale: currentProduct.onSale,
-      isNewProduct: currentProduct.isNewProduct,
-      isOutOfStock: currentProduct.isOutOfStock,
-    };
+    try {
+      const stored = JSON.parse(
+        localStorage.getItem(STORAGE_KEY) || "[]"
+      );
 
-    const filtered = stored.filter(
-      (item) => String(item._id) !== String(product._id)
-    );
+      const recentItem = {
+        _id: currentProduct._id,
+        publicId: currentProduct.publicId,
+        title: currentProduct.title,
+        price: currentProduct.price,
+        oldPrice: currentProduct.oldPrice,
+        discount: currentProduct.discount || 0,
 
-    const updated = [
-      product,
-      ...filtered,
-    ].slice(0, MAX_ITEMS);
+        type: isBundle
+          ? "bundle"
+          : "product",
 
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(updated)
-    );
+        // IMPORTANT
+        images: isBundle
+          ? Array.isArray(currentProduct.mainImages)
+            ? currentProduct.mainImages
+            : []
+          : Array.isArray(currentProduct.images)
+            ? currentProduct.images
+            : [],
 
-    setProducts(
-      updated.filter(
+        mainImages: isBundle
+          ? Array.isArray(currentProduct.mainImages)
+            ? currentProduct.mainImages
+            : []
+          : [],
+
+        onSale: currentProduct.onSale || false,
+        isOutOfStock:
+          currentProduct.isOutOfStock || false,
+
+        isNewProduct:
+          currentProduct.isNewProduct || false,
+
+        isNewBundle:
+          currentProduct.isNewBundle || false,
+      };
+
+      const filtered = stored.filter(
         (item) =>
-          String(item._id) !==
-          String(currentProduct._id)
-      )
+          String(
+            item.publicId || item._id
+          ) !== String(currentId)
+      );
+
+      const updated = [
+        recentItem,
+        ...filtered,
+      ].slice(0, MAX_ITEMS);
+
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(updated)
+      );
+
+      setProducts(
+        updated.filter(
+          (item) =>
+            String(
+              item.publicId || item._id
+            ) !== String(currentId)
+        )
+      );
+    } catch (error) {
+      console.error(
+        "RECENTLY VIEWED ERROR:",
+        error
+      );
+    }
+  }, [currentProduct, isBundle]);
+
+  const openItem = (item) => {
+    if (!item?.publicId) return;
+
+    if (item.type === "bundle") {
+      navigate(
+        `/collections/${item.publicId}`
+      );
+    } else {
+      navigate(
+        `/product/${item.publicId}`
+      );
+    }
+
+    window.scrollTo({
+      top: 0,
+      behavior: "instant",
+    });
+  };
+
+  const clearHistory = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(
+      "recently_viewed_products"
     );
-  }, [currentProduct]);
+    setProducts([]);
+  };
 
   if (!products.length) return null;
 
   return (
- <section className="mt-6 md:mt-14 px-4 md:px-6 pb-16">
-  <div className="max-w-auto mx-auto">
+    <section className="w-full border-t border-neutral-100 bg-white py-16 sm:py-20">
+      <div className="mx-auto max-w-auto px-4">
 
-    {/* Header */}
-    <div className="flex items-end justify-between mb-8 md:mb-10">
-      <div>
-        <p className="text-sm uppercase tracking-[0.3em] text-neutral-500 mb-2">
-          Your Journey
-        </p>
+        <div className="mb-8 flex items-end justify-between md:mb-10">
+          <div>
+            <p className="mb-2 text-sm uppercase tracking-[0.3em] text-neutral-500">
+              Your Journey
+            </p>
 
-        <h2 className="text-2xl md:text-5xl font-bold tracking-tight text-black">
-          Recently Viewed
-        </h2>
-      </div>
+            <h2 className="text-2xl font-bold tracking-tight text-black md:text-5xl">
+              Recently Viewed
+            </h2>
+          </div>
 
-      {products.length > 0 && (
-        <button
-          onClick={() => {
-            localStorage.removeItem("recently_viewed_products");
-            setRecentlyViewedProducts([]);
-          }}
-          className="
-            hidden md:flex
-            items-center
-            text-sm
-            font-medium
-            text-neutral-700
-            hover:text-black
-            transition
-          "
-        >
-          Clear History →
-        </button>
-      )}
-    </div>
-
-    {products.length ? (
-      <div
-        className="
-          grid
-          grid-cols-2
-          lg:grid-cols-4
-          gap-4
-          md:gap-6
-        "
-      >
-        {products.map((prod) => (
-          <article
-            key={prod._id}
-            role="button"
-            tabIndex={0}
-            onClick={() =>
-              navigate(`/product/${prod.publicId}`)
-            }
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                navigate(`/product/${prod.publicId}`);
-              }
-            }}
+          <button
+            type="button"
+            onClick={clearHistory}
             className="
-              group
-              cursor-pointer
+              hidden
+              text-sm
+              font-medium
+              text-neutral-700
+              transition
+              hover:text-black
+              md:block
             "
           >
-            {/* IMAGE */}
-            <div
-              className="
-                relative
-                overflow-hidden
-                rounded-2xl
-                bg-neutral-100
-                aspect-[3/4]
-                shadow-sm
-                transition-all
-                duration-500
-                group-hover:shadow-2xl
-              "
-            >
-              <img
-                src={
-                  prod.images?.[0] ||
-                  "/images/placeholder.png"
+            Clear History →
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 md:gap-6 lg:grid-cols-4">
+          {products.map((item) => {
+            const image =
+              item.type === "bundle"
+                ? item.mainImages?.[0]
+                : item.images?.[0];
+
+            return (
+              <article
+                key={
+                  item.publicId ||
+                  item._id
                 }
-                alt={prod.title}
-                className="
-                  w-full
-                  h-full
-                  object-cover
-                  transition-transform
-                  duration-700
-                  group-hover:scale-110
-                "
-              />
-
-              {/* Gradient */}
-              <div
-                className="
-                  absolute
-                  inset-0
-                  bg-gradient-to-t
-                  from-black/75
-                  via-black/20
-                  to-transparent
-                "
-              />
-
-              {/* STATUS */}
-              <div className="absolute top-3 left-3 flex flex-col gap-2">
-                {prod.isOutOfStock ? (
-                  <span
-                    className="
-                      bg-black/80
-                      backdrop-blur-md
-                      text-white
-                      text-[10px]
-                      font-bold
-                      tracking-[0.15em]
-                      uppercase
-                      px-3
-                      py-1.5
-                      rounded-full
-                    "
-                  >
-                    Sold Out
-                  </span>
-                ) : (
-                  <>
-                    {prod.onSale && (
-                      <span
-                        className="
-                          bg-white/90
-                          backdrop-blur-md
-                          text-black
-                          text-[10px]
-                          font-bold
-                          tracking-[0.15em]
-                          uppercase
-                          px-3
-                          py-1.5
-                          rounded-full
-                        "
-                      >
-                        Sale
-                      </span>
-                    )}
-
-                    {prod.isNewProduct && (
-                      <span
-                        className="
-                          bg-black/80
-                          backdrop-blur-md
-                          text-white
-                          text-[10px]
-                          font-bold
-                          tracking-[0.15em]
-                          uppercase
-                          px-3
-                          py-1.5
-                          rounded-full
-                        "
-                      >
-                        New
-                      </span>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {/* PRICE */}
-              <div
-                className="
-                  absolute
-                  top-3
-                  right-3
-                  bg-white/90
-                  backdrop-blur-md
-                  rounded-full
-                  px-3
-                  py-1
-                  text-xs
-                  md:text-sm
-                  font-semibold
-                "
+                role="button"
+                tabIndex={0}
+                onClick={() =>
+                  openItem(item)
+                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    openItem(item);
+                  }
+                }}
+                className="group cursor-pointer"
               >
-                ₹{Number(prod.price ?? 0).toLocaleString("en-IN")}
-              </div>
-
-              {/* CONTENT */}
-              <div
-                className="
-                  absolute
-                  bottom-0
-                  left-0
-                  right-0
-                  p-4
-                  md:p-5
-                  text-white
-                "
-              >
-                <h3
-                  className="
-                    text-sm
-                    md:text-lg
-                    font-semibold
-                    line-clamp-2
-                  "
-                >
-                  {prod.title}
-                </h3>
-
-                <p
-                  className="
-                    mt-1
-                    text-xs
-                    md:text-sm
-                    text-white/70
-                  "
-                >
-                  Premium Collection
-                </p>
-
                 <div
                   className="
-                    mt-3
-                    flex
-                    items-center
-                    justify-between
+                    relative
+                    aspect-[3/4]
+                    overflow-hidden
+                    rounded-2xl
+                    bg-neutral-100
+                    shadow-sm
+                    transition-all
+                    duration-500
+                    group-hover:shadow-2xl
                   "
                 >
-                  <div className="flex items-center gap-2">
-                    {prod.oldPrice &&
-                      Number(prod.oldPrice) >
-                        Number(prod.price) && (
-                        <span
-                          className="
-                            text-xs
-                            md:text-sm
-                            text-white/50
-                            line-through
-                          "
-                        >
-                          ₹
-                          {Number(
-                            prod.oldPrice
-                          ).toLocaleString("en-IN")}
-                        </span>
-                      )}
-
-                    <span
+                  {image ? (
+                    <img
+                      src={image}
+                      alt={
+                        item.title ||
+                        "Product"
+                      }
                       className="
-                        text-xs
-                        md:text-sm
-                        text-white/90
+                        h-full
+                        w-full
+                        object-cover
+                        transition-transform
+                        duration-700
+                        group-hover:scale-110
                       "
-                    >
-                      Inclusive of taxes
-                    </span>
+                      onError={(e) => {
+                        e.currentTarget.style.display =
+                          "none";
+                      }}
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-sm text-neutral-400">
+                      No image
+                    </div>
+                  )}
+
+                  <div
+                    className="
+                      absolute
+                      inset-0
+                      bg-gradient-to-t
+                      from-black/75
+                      via-black/20
+                      to-transparent
+                    "
+                  />
+
+                  <div className="absolute left-3 top-3 flex flex-col gap-2">
+                    {item.isOutOfStock ? (
+                      <span
+                        className="
+                          rounded-full
+                          bg-black/80
+                          px-3
+                          py-1.5
+                          text-[10px]
+                          font-bold
+                          uppercase
+                          tracking-[0.15em]
+                          text-white
+                          backdrop-blur-md
+                        "
+                      >
+                        Sold Out
+                      </span>
+                    ) : (
+                      <>
+                        {item.onSale && (
+                          <span
+                            className="
+                              rounded-full
+                              bg-white/90
+                              px-3
+                              py-1.5
+                              text-[10px]
+                              font-bold
+                              uppercase
+                              tracking-[0.15em]
+                              text-black
+                              backdrop-blur-md
+                            "
+                          >
+                            Sale
+                          </span>
+                        )}
+
+                        {(item.isNewProduct ||
+                          item.isNewBundle) && (
+                          <span
+                            className="
+                              rounded-full
+                              bg-black/80
+                              px-3
+                              py-1.5
+                              text-[10px]
+                              font-bold
+                              uppercase
+                              tracking-[0.15em]
+                              text-white
+                              backdrop-blur-md
+                            "
+                          >
+                            New
+                          </span>
+                        )}
+                      </>
+                    )}
                   </div>
 
-                  <span
+                  <div
                     className="
-                      opacity-0
-                      translate-x-3
-                      group-hover:opacity-100
-                      group-hover:translate-x-0
-                      transition-all
-                      duration-300
-                      text-sm
-                      font-medium
+                      absolute
+                      right-3
+                      top-3
+                      rounded-full
+                      bg-white/90
+                      px-3
+                      py-1.5
+                      text-xs
+                      font-semibold
+                      text-black
+                      backdrop-blur-md
+                      md:text-sm
                     "
                   >
-                    View →
-                  </span>
-                </div>
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
-    ) : (
-      <div
-        className="
-          rounded-2xl
-          border
-          border-dashed
-          border-neutral-300
-          py-20
-          text-center
-        "
-      >
-        <p className="text-neutral-500">
-          Products you view will appear here.
-        </p>
-      </div>
-    )}
+                    ₹
+                    {Number(
+                      item.price || 0
+                    ).toLocaleString(
+                      "en-IN"
+                    )}
+                  </div>
 
-    {/* MOBILE CLEAR */}
-    {products.length > 0 && (
-      <button
-        onClick={() => {
-          localStorage.removeItem(
-            "recently_viewed_products"
-          );
-          setRecentlyViewedProducts([]);
-        }}
-        className="
-          md:hidden
-          mt-5
-          w-full
-          py-3
-          rounded-xl
-          border
-          border-neutral-200
-          text-sm
-          font-medium
-          text-neutral-600
-          hover:text-black
-          hover:border-black
-          transition
-        "
-      >
-        Clear Recently Viewed
-      </button>
-    )}
-  </div>
-</section>
+                  <div
+                    className="
+                      absolute
+                      bottom-0
+                      left-0
+                      right-0
+                      p-4
+                      text-white
+                      md:p-5
+                    "
+                  >
+                    <h3
+                      className="
+                        line-clamp-2
+                        text-sm
+                        font-semibold
+                        leading-tight
+                        md:text-lg
+                      "
+                    >
+                      {item.title}
+                    </h3>
+
+                    <p
+                      className="
+                        mt-1
+                        text-xs
+                        text-white/70
+                        md:text-sm
+                      "
+                    >
+                      {item.type === "bundle"
+                        ? "Premium Bundle"
+                        : "Premium Collection"}
+                    </p>
+
+                    <div className="mt-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {Number(
+                          item.oldPrice || 0
+                        ) >
+                          Number(
+                            item.price || 0
+                          ) && (
+                          <span className="text-xs text-white/50 line-through md:text-sm">
+                            ₹
+                            {Number(
+                              item.oldPrice
+                            ).toLocaleString(
+                              "en-IN"
+                            )}
+                          </span>
+                        )}
+
+                        <span className="text-xs text-white/90 md:text-sm">
+                          Inclusive of taxes
+                        </span>
+                      </div>
+
+                      <span
+                        className="
+                          translate-x-3
+                          text-sm
+                          font-medium
+                          opacity-0
+                          transition-all
+                          duration-300
+                          group-hover:translate-x-0
+                          group-hover:opacity-100
+                        "
+                      >
+                        View →
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          onClick={clearHistory}
+          className="
+            mt-5
+            w-full
+            rounded-xl
+            border
+            border-neutral-200
+            py-3
+            text-sm
+            font-medium
+            text-neutral-600
+            transition
+            hover:border-black
+            hover:text-black
+            md:hidden
+          "
+        >
+          Clear Recently Viewed
+        </button>
+      </div>
+    </section>
   );
 }

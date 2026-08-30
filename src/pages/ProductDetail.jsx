@@ -12,6 +12,7 @@ import { ChevronLeft, ChevronRight, X, ShoppingCart, Heart, CreditCard, Gift } f
 import api from "@/utils/config"
 import toast from "react-hot-toast"
 import { useWishlist } from "../state/WishlistContext.jsx";
+import RelatedProducts from "@/components/RelatedProducts.jsx"
 export default function ProductDetail() {
   const { wishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const { publicId } = useParams()
@@ -70,10 +71,7 @@ export default function ProductDetail() {
     const getProduct = async () => {
       setLoading(true)
       try {
-        console.log("hitttttttttttttt")
         const { data } = await api.get(`/products/${publicId}`)
-                console.log("fff",data)
-
         setProduct(data)
         setActiveImage(0) // reset image index when product changes
       } catch (error) {
@@ -430,6 +428,8 @@ export default function ProductDetail() {
       : addToWishlist(product._id);
   };
   const wishlisted = wishlist.includes(product._id);
+
+  console.log("recommendedProducts",recommendedProducts)
   return (
     <>
       <div
@@ -1479,239 +1479,11 @@ flex-shrink-0
         )}
       </div>
 
-      {/* You Might Be Interested Section */}
-      <section className="mt-16 md:mt-24 px-4 md:px-6 pb-16">
-        <div className="max-w-auto mx-auto">
-
-          {/* Header */}
-          <div className="flex items-end justify-between mb-8 md:mb-10">
-            <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-neutral-500 mb-2">
-                Discover More
-              </p>
-
-              <h2 className="text-2xl md:text-5xl font-bold tracking-tight text-black">
-                You Might Also Like
-              </h2>
-            </div>
-
-            <button
-              onClick={() => navigate("/shop")}
-              className="
-          hidden md:flex
-          items-center
-          text-sm
-          font-medium
-          text-neutral-700
-          hover:text-black
-          transition
-        "
-            >
-              View All →
-            </button>
-          </div>
-
-          {recommendedProducts.length ? (
-            <div
-              className="
-          grid
-          grid-cols-2
-          lg:grid-cols-3
-          gap-4
-          md:gap-8
-        "
-            >
-              {recommendedProducts.map((prod) => (
-                <article
-                  key={prod._id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() =>
-                   navigate(`/product/${prod.publicId}`)
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      navigate(`/product/${prod.publicId}`)
-                    }
-                  }}
-                  className="
-              group
-              cursor-pointer
-            "
-                >
-                  {/* IMAGE */}
-                  <div
-                    className="
-                relative
-                overflow-hidden
-                rounded-2xl
-                bg-neutral-100
-
-                aspect-[3/4]
-
-                shadow-sm
-                transition-all
-                duration-500
-
-                group-hover:shadow-2xl
-              "
-                  >
-                    <img
-                      src={
-                        prod.images?.[0] ||
-                        "/images/placeholder.png"
-                      }
-                      alt={prod.title}
-                      className="
-                  w-full
-                  h-full
-                  object-cover
-
-                  transition-transform
-                  duration-700
-
-                  group-hover:scale-110
-                "
-                    />
-
-                    {/* Gradient */}
-                    <div
-                      className="
-                  absolute
-                  inset-0
-                  bg-gradient-to-t
-                  from-black/70
-                  via-black/20
-                  to-transparent
-                "
-                    />
-
-                    {/* Price Badge */}
-                    <div
-                      className="
-                  absolute
-                  top-3
-                  right-3
-
-                  bg-white/90
-                  backdrop-blur-md
-
-                  rounded-full
-
-                  px-3
-                  py-1
-
-                  text-xs
-                  md:text-sm
-                  font-semibold
-                "
-                    >
-                      ₹{Number(prod.price ?? 0).toLocaleString()}
-                    </div>
-
-                    {/* Bottom Content */}
-                    <div
-                      className="
-                  absolute
-                  bottom-0
-                  left-0
-                  right-0
-
-                  p-4
-                  md:p-6
-
-                  text-white
-                "
-                    >
-                      <h3
-                        className="
-                    text-sm
-                    md:text-xl
-
-                    font-semibold
-
-                    line-clamp-2
-                  "
-                      >
-                        {prod.title}
-                      </h3>
-
-                      <p
-                        className="
-                    mt-1
-
-                    text-xs
-                    md:text-sm
-
-                    text-white/80
-                  "
-                      >
-                        Premium Collection
-                      </p>
-
-                      <div
-                        className="
-                    mt-3
-
-                    flex
-                    items-center
-                    justify-between
-                  "
-                      >
-                        <span
-                          className="
-                      text-xs
-                      md:text-sm
-                      text-white/90
-                    "
-                        >
-                          Inclusive of taxes
-                        </span>
-
-                        <span
-                          className="
-                      opacity-0
-                      translate-x-3
-
-                      group-hover:opacity-100
-                      group-hover:translate-x-0
-
-                      transition-all
-                      duration-300
-
-                      text-sm
-                      font-medium
-                    "
-                        >
-                          View →
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div
-              className="
-          rounded-2xl
-          border
-          border-dashed
-          border-neutral-300
-
-          py-20
-
-          text-center
-        "
-            >
-              <p className="text-neutral-500">
-                No recommendations available right now.
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
-      <RecentlyViewed currentProduct={product} />
+ <RelatedProducts
+   type="product"
+   publicId={publicId}
+ />
+      <RecentlyViewed currentProduct={product} type="product"/>
     </>
   )
 }
