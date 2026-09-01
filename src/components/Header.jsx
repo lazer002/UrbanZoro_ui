@@ -1,5 +1,5 @@
 "use client";
-// data-lenis-prevent
+
 import { useEffect, useRef, useState } from "react";
 import {
   Menu,
@@ -12,12 +12,14 @@ import {
   Link,
   useLocation,
 } from "react-router-dom";
-
-import api from "@/utils/config";
-
 import { useCart } from "../state/CartContext.jsx";
 import { useAuth } from "../state/AuthContext.jsx";
 import { useWishlist } from "../state/WishlistContext.jsx";
+
+import {
+  useGetCategoriesQuery,
+  useGetProductsQuery,
+} from "@/store/api";
 
 const navItems = [
   {
@@ -25,20 +27,17 @@ const navItems = [
     title: "HOME",
     url: "/",
   },
-
   {
     id: "men",
     title: "MEN",
     url: "/products",
     megaMenu: true,
   },
-
   {
     id: "collections",
     title: "COLLECTIONS",
     url: "/collections",
   },
-
   {
     id: "new-arrivals",
     title: "NEW ARRIVALS",
@@ -46,32 +45,391 @@ const navItems = [
   },
 ];
 
+
+// 4. ADD THIS COMPONENT AT THE BOTTOM OF Header.jsx
+
+function QuickViewModal({
+  product,
+  onClose,
+}) {
+  const { add } = useCart();
+
+  const [selectedSize, setSelectedSize] =
+    useState("");
+
+  const inventory =
+    product?.inventory || {};
+
+ const stock =
+  inventory?.stock ||
+  inventory ||
+  {};
+
+  const sizes = Object.entries(stock)
+    .filter(
+      ([, qty]) => Number(qty) > 0
+    )
+    .map(([size]) => size);
+
+  const selectedStock = selectedSize
+    ? Number(stock[selectedSize] || 0)
+    : 0;
+
+  const outOfStock =
+    product?.inventory?.trackInventory !==
+      false &&
+    sizes.length === 0;
+
+  const handleAdd = async () => {
+    if (!selectedSize) {
+      toast.error("Please select a size");
+      return;
+    }
+
+    if (
+      product?.inventory?.trackInventory !==
+        false &&
+      selectedStock <= 0
+    ) {
+      toast.error("This size is out of stock");
+      return;
+    }
+
+    await add(
+      product.publicId,
+      selectedSize,
+      1
+    );
+
+    onClose();
+  };
+
+  return (
+<div className="
+  fixed
+  inset-0
+  z-[99999]
+  flex
+  items-center
+  justify-center
+  p-4
+">
+  <button
+    type="button"
+    onClick={onClose}
+    className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+  />
+
+  <div className="
+    relative
+    z-10
+    w-full
+    max-w-4xl
+    max-h-[90vh]
+    overflow-y-auto
+    rounded-2xl
+    bg-white
+    shadow-2xl
+  ">
+        <button
+          type="button"
+          onClick={onClose}
+          className="
+            absolute
+            right-4
+            top-4
+            z-10
+            flex
+            h-10
+            w-10
+            items-center
+            justify-center
+            rounded-full
+            bg-white
+            shadow
+            transition
+            hover:bg-black
+            hover:text-white
+          "
+        >
+          <X size={18} />
+        </button>
+
+        <div className="
+          grid
+          grid-cols-1
+          md:grid-cols-2
+        ">
+          <div className="
+             h-[45vh]
+  min-h-[300px]
+  max-h-[650px]
+  bg-neutral-100
+  overflow-hidden
+  md:h-[70vh]
+          ">
+            <img
+              src={
+                product?.images?.[0] ||
+                product?.mainImage ||
+                "/placeholder.png"
+              }
+              alt={product?.title}
+              className="
+                h-full
+                w-full
+                object-cover
+              "
+            />
+          </div>
+
+          <div className="
+            flex
+            flex-col
+            justify-center
+            p-7
+            md:p-10
+          ">
+            <p className="
+              text-[9px]
+              font-bold
+              uppercase
+              tracking-[0.25em]
+              text-neutral-400
+            ">
+              {product?.category?.name ||
+                "Product"}
+            </p>
+
+            <h2 className="
+              mt-3
+              text-2xl
+              font-black
+              uppercase
+              tracking-tight
+            ">
+              {product?.title}
+            </h2>
+
+            <div className="
+              mt-5
+              flex
+              items-center
+              gap-3
+            ">
+              {product?.onSale && (
+                <span className="
+                  text-sm
+                  text-neutral-400
+                  line-through
+                ">
+                  ₹
+                  {Math.round(
+                    Number(product.price) /
+                      0.7
+                  ).toLocaleString("en-IN")}
+                </span>
+              )}
+
+              <span className="
+                text-xl
+                font-bold
+              ">
+                ₹
+                {Number(
+                  product?.price || 0
+                ).toLocaleString("en-IN")}
+              </span>
+            </div>
+
+            {!outOfStock && (
+              <>
+                <p className="
+                  mt-8
+                  text-[10px]
+                  font-bold
+                  uppercase
+                  tracking-[0.18em]
+                ">
+                  Select size
+                </p>
+
+                <div className="
+                  mt-3
+                  flex
+                  flex-wrap
+                  gap-2
+                ">
+                  {sizes.map((size) => {
+                    const qty =
+                      Number(
+                        stock[size] || 0
+                      );
+
+                    const selected =
+                      selectedSize === size;
+
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() =>
+                          setSelectedSize(
+                            size
+                          )
+                        }
+                        className={`
+                          min-w-14
+                          border
+                          px-4
+                          py-3
+                          text-xs
+                          font-bold
+                          transition
+                          ${
+                            selected
+                              ? "border-black bg-black text-white"
+                              : "border-neutral-200 hover:border-black"
+                          }
+                        `}
+                      >
+                        {size}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {selectedSize && (
+                  <p className="
+                    mt-3
+                    text-[10px]
+                    font-semibold
+                    uppercase
+                    tracking-wider
+                    text-neutral-400
+                  ">
+                    {selectedStock} available
+                  </p>
+                )}
+              </>
+            )}
+
+            {outOfStock && (
+              <p className="
+                mt-8
+                text-xs
+                font-bold
+                uppercase
+                tracking-[0.15em]
+                text-red-500
+              ">
+                Out of stock
+              </p>
+            )}
+
+            <button
+              type="button"
+              disabled={
+                outOfStock ||
+                !selectedSize
+              }
+              onClick={handleAdd}
+              className="
+                mt-8
+                flex
+                h-14
+                w-full
+                items-center
+                justify-center
+                bg-black
+                text-xs
+                font-bold
+                uppercase
+                tracking-[0.18em]
+                text-white
+                transition
+                hover:bg-neutral-800
+                disabled:cursor-not-allowed
+                disabled:opacity-30
+              "
+            >
+              Add to bag
+            </button>
+
+            <Link
+              to={`/product/${product?.publicId}`}
+              onClick={onClose}
+              className="
+                mt-3
+                flex
+                h-12
+                w-full
+                items-center
+                justify-center
+                border
+                border-neutral-200
+                text-[10px]
+                font-bold
+                uppercase
+                tracking-[0.16em]
+                transition
+                hover:border-black
+              "
+            >
+              View full product
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Header() {
   const location = useLocation();
+
   const { user, logout } = useAuth();
   const { items } = useCart();
   const { wishlist } = useWishlist();
-const [cartAnimate, setCartAnimate] =
-  useState(false);
+
+  /* =========================
+     CATEGORIES
+  ========================= */
+
+  const {
+    data: categoriesData,
+    isLoading: categoriesLoading,
+    isError: categoriesError,
+  } = useGetCategoriesQuery();
+
+  const categories = Array.isArray(
+    categoriesData?.categories
+  )
+    ? categoriesData.categories
+    : Array.isArray(categoriesData)
+      ? categoriesData
+      : [];
+
+  /* =========================
+     STATE
+  ========================= */
+
+  const [cartAnimate, setCartAnimate] =
+    useState(false);
+
   const [mobileOpen, setMobileOpen] =
     useState(false);
 
   const [searchOpen, setSearchOpen] =
     useState(false);
 
-  const [query, setQuery] = useState("");
-
-  const [results, setResults] = useState([]);
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [categories, setCategories] =
-    useState([]);
+  const [query, setQuery] =
+    useState("");
 
   const [activeMenu, setActiveMenu] =
     useState(null);
-
+const [quickViewProduct, setQuickViewProduct] =
+  useState(null);
   const closeTimeoutRef = useRef(null);
 
   const baseClass = `
@@ -81,9 +439,9 @@ const [cartAnimate, setCartAnimate] =
     uppercase
   `;
 
-  // =========================
-  // MENU INTERACTION
-  // =========================
+  /* =========================
+     MENU
+  ========================= */
 
   const openMenu = (menuId) => {
     if (closeTimeoutRef.current) {
@@ -100,106 +458,49 @@ const [cartAnimate, setCartAnimate] =
       }, 180);
   };
 
-  // =========================
-  // FETCH CATEGORIES
-  // =========================
-
-  const fetchCategories = async () => {
-    try {
-      const res = await api.get(
-        "/categories"
-      );
-
-      setCategories(
-        Array.isArray(
-          res.data.categories
-        )
-          ? res.data.categories
-          : []
-      );
-    } catch (error) {
-      console.error(error);
-    }
-  };
-useEffect(() => {
-  setActiveMenu(null);
-}, [location.pathname, location.search]);
-
   useEffect(() => {
-    fetchCategories();
+    setActiveMenu(null);
+    setMobileOpen(false);
+  }, [
+    location.pathname,
+    location.search,
+  ]);
 
-    return () => {
-      if (closeTimeoutRef.current) {
-        clearTimeout(
-          closeTimeoutRef.current
-        );
-      }
-    };
-  }, []);
-
-  // =========================
-  // SEARCH
-  // =========================
-
-useEffect(() => {
+  /* =========================
+     SEARCH
+  ========================= */
 
   const trimmedQuery = query.trim();
 
-  if (trimmedQuery.length < 2) {
-    setResults([]);
-    setLoading(false);
-    return;
-  }
-
-  const controller = new AbortController();
-
-  const debounce = setTimeout(async () => {
-
-    try {
-
-      setLoading(true);
-
-      const res = await api.get(
-        `/search/products?q=${encodeURIComponent(trimmedQuery)}`,
-        {
-          signal: controller.signal,
-        }
-      );
-
-      setResults(res.data || []);
-
-    } catch (error) {
-
-      if (
-        error.name !== "CanceledError" &&
-        error.name !== "AbortError"
-      ) {
-        console.error(error);
-      }
-
-    } finally {
-
-      setLoading(false);
-
+  const {
+    data: searchData,
+    isFetching: searchLoading,
+  } = useGetProductsQuery(
+    {
+      q: trimmedQuery,
+      limit: 8,
+      page: 1,
+    },
+    {
+      skip: trimmedQuery.length < 2,
     }
+  );
 
-  }, 500);
+  const results =
+    searchData?.items ||
+    searchData?.products ||
+    [];
 
-  return () => {
+  const loading =
+    trimmedQuery.length >= 2 &&
+    searchLoading;
 
-    controller.abort();
+  /* =========================
+     CART ANIMATION
+  ========================= */
 
-    clearTimeout(debounce);
-
-  };
-
-}, [query]);
-
-
-
-useEffect(() => {
-
-  if (items.length > 0) {
+  useEffect(() => {
+    if (!items.length) return;
 
     setCartAnimate(true);
 
@@ -208,16 +509,43 @@ useEffect(() => {
     }, 600);
 
     return () => clearTimeout(timer);
+  }, [items.length]);
 
-  }
+  /* =========================
+     CLEANUP MENU TIMER
+  ========================= */
 
-}, [items.length]);
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  /* =========================
+     SEARCH CLOSE
+  ========================= */
+
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setQuery("");
+  };
+
+  /* =========================
+     SEARCH RESULT CLICK
+  ========================= */
+
+  const handleSearchResult = () => {
+    setSearchOpen(false);
+    setQuery("");
+  };
 
   return (
     <header
       className="
         sticky top-0 z-[10000]
-        bg-white/95 backdrop-blur-xl
+        bg-white/95 
         border-b border-gray-100
       "
     >
@@ -548,7 +876,7 @@ useEffect(() => {
           w-screen
           transition-all duration-300 ease-out
           z-[90]
-
+h-fit
           ${
             activeMenu === "men"
               ? "opacity-100 visible translate-y-0"
@@ -1031,15 +1359,11 @@ max-h-[100vh]
 
     h-full
 
-    bg-transparent
-
-    outline-none
-
-    text-[16px]
-    md:text-[18px]
+    text-[12px]
+    md:text-[15px]
 
     font-light
-
+bg-transparent  focus:border-transparent focus:outline-none 
     placeholder:text-gray-400
   "
 />
@@ -1167,258 +1491,361 @@ max-h-[100vh]
         "
       >
 
-        {results.map((p) => (
+       {results.map((p) => {
+  const inventory = p.inventory || {};
 
-         <Link
-  key={p._id}
+  const stockEntries = Object.entries(
+    inventory.stock || inventory
+  );
 
-  to={`/product/${p._id}`}
+  const totalStock = stockEntries.reduce(
+    (total, [, qty]) =>
+      total + Math.max(0, Number(qty) || 0),
+    0
+  );
 
-  onClick={() =>
-    setSearchOpen(false)
-  }
+ const isTracked = true;
 
+  const reserved = Number(
+    inventory.reserved || 0
+  );
+
+  const availableStock = Math.max(
+    0,
+    totalStock - reserved
+  );
+
+  const isOutOfStock =
+    isTracked &&
+    availableStock <= 0;
+
+  const isLowStock =
+    isTracked &&
+    availableStock > 0 &&
+    availableStock <= 3;
+
+  const salePrice = Number(p.price) || 0;
+
+  const originalPrice = p.onSale
+    ? Math.round(salePrice / 0.7)
+    : null;
+
+  return (
+    <Link
+      key={p.publicId}
+      to={`/product/${p.publicId}`}
+      onClick={() => setSearchOpen(false)}
+      className="group relative flex flex-col"
+    >
+      {/* IMAGE */}
+      <div
+        className={`
+          relative
+          aspect-[3/4]
+          overflow-hidden
+          rounded-[3px]
+          bg-neutral-100
+        `}
+      >
+        <img
+          src={
+            p.images?.[0] ||
+            p.mainImage ||
+            "/placeholder.png"
+          }
+          alt={p.title || "Product"}
+          loading="lazy"
+          className={`
+            h-full
+            w-full
+            object-cover
+            transition-transform
+            duration-700
+            ease-out
+            group-hover:scale-[1.04]
+            ${
+              isOutOfStock
+                ? "opacity-60 grayscale-[20%]"
+                : ""
+            }
+          `}
+          onError={(e) => {
+            e.currentTarget.src =
+              "/placeholder.png";
+          }}
+        />
+
+        {/* SALE */}
+        {p.onSale && !isOutOfStock && (
+          <span
+            className="
+              absolute
+              left-3
+              top-3
+              rounded-full
+              bg-black
+              px-3
+              py-1.5
+              text-[9px]
+              font-bold
+              uppercase
+              tracking-[0.18em]
+              text-white
+            "
+          >
+            Sale
+          </span>
+        )}
+
+        {/* OUT OF STOCK */}
+        {isOutOfStock && (
+          <div
+            className="
+              absolute
+              inset-x-0
+              bottom-0
+              bg-black/85
+              px-3
+              py-3
+              text-center
+              backdrop-blur-sm
+            "
+          >
+            <span
+              className="
+                text-[9px]
+                font-bold
+                uppercase
+                tracking-[0.2em]
+                text-white
+              "
+            >
+              Out of stock
+            </span>
+          </div>
+        )}
+
+        {/* LOW STOCK */}
+        {!isOutOfStock &&
+          isLowStock && (
+            <span
+              className="
+                absolute
+                bottom-3
+                left-3
+                rounded-full
+                bg-white/95
+                px-3
+                py-1.5
+                text-[9px]
+                font-bold
+                uppercase
+                tracking-[0.15em]
+                text-black
+                shadow-sm
+                backdrop-blur-md
+              "
+            >
+              Only {availableStock} left
+            </span>
+          )}
+
+        {/* QUICK VIEW */}
+        {!isOutOfStock && (
+          <div
+            className="
+              absolute
+              bottom-4
+              left-1/2
+              -translate-x-1/2
+              translate-y-3
+              opacity-0
+              transition-all
+              duration-500
+              group-hover:translate-y-0
+              group-hover:opacity-100
+            "
+          >
+            <button
+  type="button"
+  onClick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setQuickViewProduct(p);
+  }}
   className="
-    group
-
-    relative
-
-    flex
-    flex-col
+    whitespace-nowrap
+    bg-white/95
+    backdrop-blur-md
+    text-[11px]
+    font-semibold
+    tracking-[0.18em]
+    uppercase
+    px-5
+    py-3
+    rounded-full
+    shadow-lg
+    hover:bg-black
+    hover:text-white
+    transition
   "
 >
-
-  {/* IMAGE */}
-  <div
-    className="
-      relative
-
-      aspect-[3/4]
-
-      bg-[#f5f5f5]
-
-      overflow-hidden
-
-      rounded-[2px]
-
-      mb-4
-    "
-  >
-
-    {/* IMAGE */}
-    <img
-      src={
-        p.images?.[0]
-        || "/placeholder.png"
-      }
-
-      alt={p.title}
-
-      className="
-        w-full
-        h-full
-
-        object-cover
-
-        transition-transform
-        duration-700
-        ease-out
-
-        group-hover:scale-[1.04]
-      "
-    />
-
-    {/* QUICK VIEW */}
-    <div
-      className="
-        absolute
-        left-1/2
-        bottom-4
-
-        -translate-x-1/2
-        translate-y-3
-
-        opacity-0
-
-        group-hover:opacity-100
-        group-hover:translate-y-0
-
-        transition-all
-        duration-500
-      "
-    >
-
-      <button
-        className="
-          whitespace-nowrap
-
-          bg-white/95
-          backdrop-blur-md
-
-          text-[11px]
-          font-semibold
-          tracking-[0.18em]
-          uppercase
-
-          px-5
-          py-3
-
-          rounded-full
-
-          shadow-lg
-
-          hover:bg-black
-          hover:text-white
-
-          transition
-        "
-      >
-        Quick View
-      </button>
-
-    </div>
-
-    {/* SALE BADGE */}
-    {p.onSale && (
-
-      <div
-        className="
-          absolute
-          top-3
-          left-3
-
-          bg-red-500
-          text-white
-
-          text-[10px]
-          font-bold
-
-          tracking-[0.18em]
-
-          px-3
-          py-1.5
-
-          rounded-full
-        "
-      >
-        SALE
+  Quick View
+</button>
+          </div>
+        )}
       </div>
 
-    )}
-
-  </div>
-
-  {/* INFO */}
-  <div className="space-y-1">
-
-    {/* TITLE */}
-    <h4
-      className="
-        text-[14px]
-        md:text-[15px]
-
-        font-medium
-
-        tracking-tight
-
-        text-black/90
-
-        line-clamp-1
-
-        transition-colors
-        duration-300
-
-        group-hover:text-black
-      "
-    >
-      {p.title}
-    </h4>
-
-    {/* CATEGORY */}
-    {p.category?.name && (
-
-      <p
-        className="
-          text-[11px]
-
-          uppercase
-
-          tracking-[0.18em]
-
-          text-gray-400
-        "
-      >
-        {p.category.name}
-      </p>
-
-    )}
-
-    {/* PRICE */}
-    <div
-      className="
-        flex items-center
-        gap-2
-
-        pt-1
-      "
-    >
-
-      {p.onSale && (
-
-        <span
+      {/* INFO */}
+      <div className="mt-4 space-y-1.5">
+        {/* TITLE */}
+        <h4
           className="
-        text-xs text-gray-500 line-through
+            line-clamp-1
+            text-[14px]
+            font-medium
+            tracking-tight
+            text-black/90
+            transition-colors
+            duration-300
+            group-hover:text-black
           "
         >
-          ₹ 
-          {Math.round(
-            Number(p.price) / 0.7
-          ).toLocaleString()}
-        </span>
+          {p.title}
+        </h4>
 
-      )}
-      <span
-        className="
-     text-md font-bold text-red-600
-        "
-      >
-        ₹ {Number(p.price).toLocaleString()}
-      </span>
+        {/* CATEGORY */}
+        {p.category?.name && (
+          <p
+            className="
+              text-[9px]
+              font-semibold
+              uppercase
+              tracking-[0.2em]
+              text-neutral-400
+            "
+          >
+            {p.category.name}
+          </p>
+        )}
 
+        {/* PRICE */}
+        <div className="flex items-center gap-2 pt-1">
+          <span
+            className="
+              text-[14px]
+              font-bold
+              tracking-tight
+              text-black
+            "
+          >
+            ₹{" "}
+            {salePrice.toLocaleString("en-IN")}
+          </span>
 
-    </div>
+          {p.onSale &&
+            originalPrice && (
+              <span
+                className="
+                  text-[11px]
+                  text-neutral-400
+                  line-through
+                "
+              >
+                ₹{" "}
+                {originalPrice.toLocaleString(
+                  "en-IN"
+                )}
+              </span>
+            )}
 
-    {/* STOCK */}
-    {Object.values(
-      p.inventory || {}
-    ).every(qty => qty === 0) && (
+          {p.onSale && (
+            <span
+              className="
+                text-[9px]
+                font-bold
+                uppercase
+                tracking-wider
+                text-red-500
+              "
+            >
+              30% off
+            </span>
+          )}
+        </div>
 
-      <p
-        className="
-          text-[12px]
+        {/* INVENTORY */}
+        {!isOutOfStock &&
+          isTracked && (
+            <div className="flex items-center gap-2 pt-1">
+              <span
+                className={`
+                  h-1.5
+                  w-1.5
+                  rounded-full
+                  ${
+                    isLowStock
+                      ? "bg-red-500"
+                      : "bg-black"
+                  }
+                `}
+              />
 
-          text-red-500
+              <span
+                className={`
+                  text-[9px]
+                  font-semibold
+                  uppercase
+                  tracking-[0.16em]
+                  ${
+                    isLowStock
+                      ? "text-red-500"
+                      : "text-neutral-400"
+                  }
+                `}
+              >
+                {isLowStock
+                  ? `Only ${availableStock} available`
+                  : "In stock"}
+              </span>
+            </div>
+          )}
 
-          font-medium
+        {!isTracked && (
+          <div className="flex items-center gap-2 pt-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-black" />
 
-          pt-1
-        "
-      >
-        Out of stock
-      </p>
-
-    )}
-
-  </div>
-
-</Link>
-        ))}
+            <span
+              className="
+                text-[9px]
+                font-semibold
+                uppercase
+                tracking-[0.16em]
+                text-neutral-400
+              "
+            >
+              Available
+            </span>
+          </div>
+        )}
+      </div>
+    </Link>
+  );
+})}
 
       </div>
 
     </div>
 
   )}
+  {quickViewProduct && (
+  <QuickViewModal
+    product={quickViewProduct}
+    onClose={() =>
+      setQuickViewProduct(null)
+    }
+  />
+)}
 
 </div>
 
