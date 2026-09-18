@@ -381,7 +381,7 @@ console.log('✌️fromBuildYourLook --->', fromBuildYourLook);
     product?.price ?? 0
   );
 
-  const mrp = price * 1.2;
+
 
   // =====================================================
   // SIZES / STOCK
@@ -881,7 +881,7 @@ flex-shrink-0
             <span className="text-gray-500 text-sm md:text-lg font-medium flex items-baseline gap-1">
               MRP
               <span className="text-base md:text-xl line-through text-gray-500">
-                ₹ {mrp.toFixed(2)}
+                ₹ {product.oldPrice.toFixed(2)}
               </span>
             </span>
 

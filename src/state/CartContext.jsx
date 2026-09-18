@@ -21,6 +21,7 @@ import {
 } from "@/store/api";
 
 import { useAuth } from "./AuthContext.jsx";
+import { useLocation } from "react-router-dom";
 
 const CartContext = createContext(null);
 
@@ -49,7 +50,9 @@ const ensureGuestId = () => {
 
 export function CartProvider({ children }) {
   const { user, guestId } = useAuth();
-
+const location = useLocation();
+  const isAdminPage =
+    location.pathname.startsWith("/admin");
   /* =======================================================
      ENSURE GUEST
   ======================================================= */
@@ -68,7 +71,7 @@ export function CartProvider({ children }) {
     isFetching,
     refetch,
   } = useGetCartQuery(undefined, {
-    skip: !user && !guestId,
+    skip:  isAdminPage || !user && !guestId,
   });
 
   const items = Array.isArray(data?.items)
