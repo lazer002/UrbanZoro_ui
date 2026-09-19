@@ -470,7 +470,7 @@ const {
         .filter(Boolean);
 
       await updateBundle({
-        id: editBundle._id,
+        id: editBundle.publicId,
         data: {
           title: editBundle.title.trim(),
           description: editBundle.description || "",
