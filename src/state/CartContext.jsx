@@ -72,6 +72,8 @@ const location = useLocation();
     refetch,
   } = useGetCartQuery(undefined, {
     skip:  isAdminPage || !user && !guestId,
+     refetchOnMountOrArgChange: 60,
+
   });
 
   const items = Array.isArray(data?.items)
