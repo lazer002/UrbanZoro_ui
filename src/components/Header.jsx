@@ -7,7 +7,7 @@ import {
   ShoppingCart,
   User,
   X,
-  Clock ,ChevronRight,Heart ,Package ,LogOut 
+  Clock ,ChevronRight,Heart ,Package ,LogOut ,ChevronLeft
 } from "lucide-react";
 import {
   Link,
@@ -430,7 +430,13 @@ export default function Header() {
     useState(null);
   const [quickViewProduct, setQuickViewProduct] =
     useState(null);
-  const closeTimeoutRef = useRef(null);
+const closeTimeoutRef = useRef(null);
+const categoryScrollRef = useRef(null);
+
+const [categoryScrollState, setCategoryScrollState] = useState({
+  left: false,
+  right: true,
+});
 
   const baseClass = `
     text-[13px]
@@ -457,7 +463,48 @@ export default function Header() {
         setActiveMenu(null);
       }, 180);
   };
+useEffect(() => {
+  const el = categoryScrollRef.current;
 
+  if (!el) return;
+
+  const updateCategoryScroll = () => {
+    const maxScroll =
+      el.scrollWidth - el.clientWidth;
+
+    const currentScroll = el.scrollLeft;
+
+    setCategoryScrollState({
+      left: currentScroll > 5,
+      right: currentScroll < maxScroll - 5,
+    });
+  };
+
+  updateCategoryScroll();
+
+  el.addEventListener(
+    "scroll",
+    updateCategoryScroll,
+    { passive: true }
+  );
+
+  window.addEventListener(
+    "resize",
+    updateCategoryScroll
+  );
+
+  return () => {
+    el.removeEventListener(
+      "scroll",
+      updateCategoryScroll
+    );
+
+    window.removeEventListener(
+      "resize",
+      updateCategoryScroll
+    );
+  };
+}, [categories.length, activeMenu]);
   useEffect(() => {
     setActiveMenu(null);
     setMobileOpen(false);
@@ -1136,7 +1183,7 @@ h-fit
               px-10 pt-10
             "
           >
-            <div className="flex gap-8 px-6" data-lenis-prevent>
+            <div className="flex gap-8 px-6" >
               {/* PROMO */}
               <div
                 className="
@@ -1262,8 +1309,19 @@ h-fit
               </div>
 
               {/* CATEGORIES */}
-              <div className="min-w-0 flex-1 overflow-x-auto">
-                <div className="flex min-w-max gap-5 pb-6">
+
+<div className="relative min-w-0 flex-1">
+
+  {/* CATEGORY SCROLL AREA */}
+  <div
+    ref={categoryScrollRef}
+    className="
+      overflow-x-auto
+      scrollbar-hide
+      pr-2
+    "
+  >
+    <div className="flex min-w-max gap-5 pb-6">
                   {categories.map((category) => (
                     <Link
                       key={category._id}
@@ -1370,14 +1428,132 @@ h-fit
                         </div>
                       </div>
                     </Link>
-                  ))}
+                       ))}
                 </div>
               </div>
+
+      {/* LEFT SCROLL FADE */}
+{categoryScrollState.left && (
+  <button
+    type="button"
+    onClick={() => {
+      categoryScrollRef.current?.scrollBy({
+        left: -285,
+        behavior: "smooth",
+      });
+    }}
+    className="
+      absolute
+      left-0
+      top-0
+      z-30
+      flex
+      h-[350px]
+      w-[72px]
+      items-center
+      justify-center
+      bg-gradient-to-r
+      from-white
+      via-white/90
+      to-white/0
+      text-black
+      transition-all
+      duration-300
+      hover:w-[84px]
+    "
+    aria-label="Previous categories"
+  >
+    <span
+      className="
+        flex
+        h-12
+        w-12
+        items-center
+        justify-center
+        rounded-full
+        bg-white/80
+        shadow-[0_8px_30px_rgba(0,0,0,0.12)]
+        backdrop-blur-md
+        transition-all
+        duration-300
+        hover:scale-110
+        hover:bg-black
+        hover:text-white
+        active:scale-95
+      "
+    >
+      <ChevronLeft
+        className="h-5 w-5"
+        strokeWidth={2}
+      />
+    </span>
+  </button>
+)}
+
+
+{/* RIGHT SCROLL FADE */}
+{categoryScrollState.right && (
+  <button
+    type="button"
+    onClick={() => {
+      categoryScrollRef.current?.scrollBy({
+        left: 285,
+        behavior: "smooth",
+      });
+    }}
+    className="
+      absolute
+      right-0
+      top-0
+      z-30
+      flex
+      h-[350px]
+      w-[72px]
+      items-center
+      justify-center
+      bg-gradient-to-l
+      from-white
+      via-white/90
+      to-white/0
+      text-black
+      transition-all
+      duration-300
+      hover:w-[84px]
+    "
+    aria-label="Next categories"
+  >
+    <span
+      className="
+        flex
+        h-12
+        w-12
+        items-center
+        justify-center
+        rounded-full
+        bg-white/80
+        shadow-[0_8px_30px_rgba(0,0,0,0.12)]
+        backdrop-blur-md
+        transition-all
+        duration-300
+        hover:scale-110
+        hover:bg-black
+        hover:text-white
+        active:scale-95
+      "
+    >
+      <ChevronRight
+        className="h-5 w-5"
+        strokeWidth={2}
+      />
+    </span>
+  </button>
+)}
+
             </div>
           </div>
         </div>
       </div>
-
+</div>
 
       {/* Mobile Menu */}
       <div
